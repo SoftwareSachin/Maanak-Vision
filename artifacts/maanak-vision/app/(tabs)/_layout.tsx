@@ -2,10 +2,16 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import C from "@/constants/colors";
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
+
+  const tabBarHeight = isWeb ? 76 : 62 + insets.bottom;
+  const tabBarPaddingBottom = isWeb ? 14 : insets.bottom + 6;
+
   return (
     <Tabs
       screenOptions={{
@@ -22,8 +28,8 @@ export default function TabLayout() {
           backgroundColor: C.surfaceContainerLow,
           borderTopWidth: 1,
           borderTopColor: C.outlineVariant,
-          height: isWeb ? 76 : 62,
-          paddingBottom: isWeb ? 14 : 8,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
           paddingTop: 6,
           elevation: 12,
           shadowColor: "#000",
@@ -43,11 +49,7 @@ export default function TabLayout() {
           title: "Inspect",
           tabBarIcon: ({ color, focused }) => (
             <View style={[S.pill, focused && S.pillActive]}>
-              <MaterialCommunityIcons
-                name={focused ? "magnify-scan" : "magnify-scan"}
-                size={24}
-                color={color}
-              />
+              <MaterialCommunityIcons name="magnify-scan" size={24} color={color} />
             </View>
           ),
         }}
@@ -58,7 +60,7 @@ export default function TabLayout() {
           title: "Train",
           tabBarIcon: ({ color, focused }) => (
             <View style={[S.pill, focused && S.pillActive]}>
-              <MaterialCommunityIcons name={focused ? "camera-iris" : "camera-iris"} size={24} color={color} />
+              <MaterialCommunityIcons name="camera-iris" size={24} color={color} />
             </View>
           ),
         }}

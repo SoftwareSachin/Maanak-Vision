@@ -99,7 +99,7 @@ export default function ResultScreen() {
     <Animated.View style={[S.root, { opacity: cardRef, backgroundColor: C.background }]}>
 
       {/* Top App Bar */}
-      <View style={[S.appBar, { paddingTop: topPad }]}>
+      <View style={[S.appBar, { paddingTop: topPad + 10 }]}>
         <Text style={S.appBarTitle}>Inspection Result</Text>
         <Pressable onPress={() => router.replace("/")} style={S.closeBtn}>
           <MaterialCommunityIcons name="close" size={20} color={C.onSurfaceVariant} />
@@ -194,9 +194,10 @@ const S = StyleSheet.create({
   appBar: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
     paddingHorizontal: 16,
-    height: 60,
+    paddingBottom: 14,
+    minHeight: 60,
     backgroundColor: C.surfaceContainerLow,
     borderBottomWidth: 1,
     borderBottomColor: C.outlineVariant,

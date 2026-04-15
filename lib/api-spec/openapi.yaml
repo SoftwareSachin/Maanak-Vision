@@ -1,15 +1,21 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Maanak Vision — Industrial QC API (BIS 2026)
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Trained product standards
+  - name: batches
+    description: Inspection batches
+  - name: inspections
+    description: Individual inspection results
+
 paths:
   /healthz:
     get:
@@ -24,13 +30,488 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all trained products
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrainedProduct"
+                required: [data]
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Save a newly trained product standard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductInput"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TrainedProduct"
+                required: [data]
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a single trained product
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TrainedProduct"
+                required: [data]
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a trained product
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /products/{id}/activate:
+    put:
+      operationId: activateProduct
+      tags: [products]
+      summary: Set a product as the active inspection standard
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Product activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/TrainedProduct"
+                required: [data]
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /batches:
+    get:
+      operationId: listBatches
+      tags: [batches]
+      summary: List all inspection batches
+      responses:
+        "200":
+          description: Batch list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Batch"
+                required: [data]
+    post:
+      operationId: createBatch
+      tags: [batches]
+      summary: Start a new inspection batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBatchInput"
+      responses:
+        "201":
+          description: Batch started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Batch"
+                required: [data]
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /batches/{id}:
+    get:
+      operationId: getBatch
+      tags: [batches]
+      summary: Get a single batch with its inspections
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Batch found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Batch"
+                required: [data]
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /batches/{id}/close:
+    post:
+      operationId: closeBatch
+      tags: [batches]
+      summary: Close a batch and issue a BIS certificate
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Batch closed and certificate issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Batch"
+                  certificateId:
+                    type: string
+                required: [data, certificateId]
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Batch already closed
+
+  /batches/{id}/inspections:
+    get:
+      operationId: getBatchInspections
+      tags: [batches]
+      summary: Get all inspections for a specific batch
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Inspection list for batch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Inspection"
+                required: [data]
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /inspections:
+    get:
+      operationId: listInspections
+      tags: [inspections]
+      summary: List inspections with optional filters
+      parameters:
+        - name: batchId
+          in: query
+          schema:
+            type: string
+        - name: result
+          in: query
+          schema:
+            type: string
+            enum: [pass, fail, warning]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: Inspection list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Inspection"
+                  total:
+                    type: integer
+                required: [data, total]
+    post:
+      operationId: createInspection
+      tags: [inspections]
+      summary: Record a new part inspection result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInspectionInput"
+      responses:
+        "201":
+          description: Inspection recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Inspection"
+                required: [data]
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /inspections/stats/summary:
+    get:
+      operationId: getInspectionStats
+      tags: [inspections]
+      summary: Aggregate pass/fail/warning stats across all inspections
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/InspectionStats"
+                required: [data]
+
+  /inspections/{id}:
+    get:
+      operationId: getInspection
+      tags: [inspections]
+      summary: Get a single inspection record
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Inspection found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Inspection"
+                required: [data]
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    DefectDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+        description:
+          type: string
+      required: [type, severity, description]
+
+    TrainedProduct:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        shots:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: integer
+        active:
+          type: boolean
+      required: [id, name, shots, createdAt, active]
+
+    CreateProductInput:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        shots:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: integer
+        active:
+          type: boolean
+      required: [id, name, shots, createdAt]
+
+    Batch:
+      type: object
+      properties:
+        id:
+          type: string
+        productName:
+          type: string
+        totalParts:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        warnings:
+          type: integer
+        createdAt:
+          type: integer
+        closedAt:
+          type: integer
+        certificateId:
+          type: string
+        bisCompliant:
+          type: boolean
+      required: [id, productName, totalParts, passed, failed, warnings, createdAt, bisCompliant]
+
+    CreateBatchInput:
+      type: object
+      properties:
+        id:
+          type: string
+        productName:
+          type: string
+      required: [productName]
+
+    Inspection:
+      type: object
+      properties:
+        id:
+          type: string
+        productName:
+          type: string
+        result:
+          type: string
+          enum: [pass, fail, warning]
+        defects:
+          type: array
+          items:
+            $ref: "#/components/schemas/DefectDetail"
+        timestamp:
+          type: integer
+        batchId:
+          type: string
+        bisCompliant:
+          type: boolean
+        inspectorNote:
+          type: string
+      required: [id, productName, result, defects, timestamp, batchId, bisCompliant]
+
+    CreateInspectionInput:
+      type: object
+      properties:
+        id:
+          type: string
+        productName:
+          type: string
+        result:
+          type: string
+          enum: [pass, fail, warning]
+        defects:
+          type: array
+          items:
+            $ref: "#/components/schemas/DefectDetail"
+        timestamp:
+          type: integer
+        batchId:
+          type: string
+        bisCompliant:
+          type: boolean
+        inspectorNote:
+          type: string
+      required: [productName, result, batchId, bisCompliant]
+
+    InspectionStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        warnings:
+          type: integer
+        passRate:
+          type: integer
+      required: [total, passed, failed, warnings, passRate]
