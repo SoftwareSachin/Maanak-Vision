@@ -11,27 +11,29 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: C.primary,
-        tabBarInactiveTintColor: C.onSurfaceVariant,
+        tabBarInactiveTintColor: C.outline,
         tabBarLabelStyle: {
           fontSize: 11,
-          fontFamily: "Rajdhani_600SemiBold",
-          letterSpacing: 0.5,
-          marginTop: 2,
+          fontFamily: "Rajdhani_700Bold",
+          letterSpacing: 0.6,
+          marginTop: 1,
         },
         tabBarStyle: {
           backgroundColor: C.surfaceContainerLow,
-          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopWidth: 1,
           borderTopColor: C.outlineVariant,
-          height: isWeb ? 80 : 64,
-          paddingBottom: isWeb ? 16 : 8,
-          paddingTop: 8,
-          elevation: 0,
-          shadowOpacity: 0,
+          height: isWeb ? 76 : 62,
+          paddingBottom: isWeb ? 14 : 8,
+          paddingTop: 6,
+          elevation: 12,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.4,
+          shadowRadius: 8,
         },
         tabBarBackground: () => (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: C.surfaceContainerLow }]} />
         ),
-        tabBarIconStyle: { marginBottom: 0 },
         tabBarItemStyle: { paddingVertical: 0 },
       }}
     >
@@ -40,10 +42,10 @@ export default function TabLayout() {
         options={{
           title: "Inspect",
           tabBarIcon: ({ color, focused }) => (
-            <View style={[S.indicator, focused && S.indicatorActive]}>
+            <View style={[S.pill, focused && S.pillActive]}>
               <MaterialCommunityIcons
                 name={focused ? "magnify-scan" : "magnify-scan"}
-                size={22}
+                size={24}
                 color={color}
               />
             </View>
@@ -55,8 +57,8 @@ export default function TabLayout() {
         options={{
           title: "Train",
           tabBarIcon: ({ color, focused }) => (
-            <View style={[S.indicator, focused && S.indicatorActive]}>
-              <MaterialCommunityIcons name="camera-iris" size={22} color={color} />
+            <View style={[S.pill, focused && S.pillActive]}>
+              <MaterialCommunityIcons name={focused ? "camera-iris" : "camera-iris"} size={24} color={color} />
             </View>
           ),
         }}
@@ -66,8 +68,8 @@ export default function TabLayout() {
         options={{
           title: "Vault",
           tabBarIcon: ({ color, focused }) => (
-            <View style={[S.indicator, focused && S.indicatorActive]}>
-              <MaterialCommunityIcons name="certificate-outline" size={22} color={color} />
+            <View style={[S.pill, focused && S.pillActive]}>
+              <MaterialCommunityIcons name={focused ? "certificate" : "certificate-outline"} size={24} color={color} />
             </View>
           ),
         }}
@@ -77,8 +79,8 @@ export default function TabLayout() {
         options={{
           title: "Settings",
           tabBarIcon: ({ color, focused }) => (
-            <View style={[S.indicator, focused && S.indicatorActive]}>
-              <MaterialCommunityIcons name="tune-variant" size={22} color={color} />
+            <View style={[S.pill, focused && S.pillActive]}>
+              <MaterialCommunityIcons name={focused ? "tune" : "tune-variant"} size={24} color={color} />
             </View>
           ),
         }}
@@ -88,14 +90,14 @@ export default function TabLayout() {
 }
 
 const S = StyleSheet.create({
-  indicator: {
-    width: 64,
-    height: 32,
+  pill: {
+    width: 60,
+    height: 30,
     borderRadius: C.radiusFull,
     alignItems: "center",
     justifyContent: "center",
   },
-  indicatorActive: {
+  pillActive: {
     backgroundColor: C.primaryContainer,
   },
 });

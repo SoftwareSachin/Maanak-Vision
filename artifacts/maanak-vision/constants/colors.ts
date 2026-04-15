@@ -2,76 +2,76 @@
 // Primary: Amber/Safety Yellow (industrial brand)
 
 const colors = {
-  // === BACKGROUNDS & SURFACES ===
-  background:              "#0F0E13",
-  onBackground:            "#E6E1E5",
+  // === BACKGROUNDS & SURFACES (rich, dark, not washed out) ===
+  background:              "#0C0B10",
+  onBackground:            "#F0ECF4",
 
-  surface:                 "#141218",
-  onSurface:               "#E6E1E5",
+  surface:                 "#121016",
+  onSurface:               "#F0ECF4",
 
-  surfaceVariant:          "#49454F",
-  onSurfaceVariant:        "#CAC4D0",
+  surfaceVariant:          "#3A3640",
+  onSurfaceVariant:        "#D0C8DA",
 
-  // Tonal surface containers (elevation tinting)
-  surfaceContainerLowest:  "#0F0E13",
-  surfaceContainerLow:     "#1D1B20",
-  surfaceContainer:        "#211F26",
-  surfaceContainerHigh:    "#2B2930",
-  surfaceContainerHighest: "#36343B",
+  // Tonal surface containers — stronger fills for real depth
+  surfaceContainerLowest:  "#0C0B10",
+  surfaceContainerLow:     "#1A1820",
+  surfaceContainer:        "#201E28",
+  surfaceContainerHigh:    "#2A2834",
+  surfaceContainerHighest: "#353240",
 
   // === OUTLINE ===
-  outline:                 "#938F99",
-  outlineVariant:          "#49454F",
+  outline:                 "#7A7585",
+  outlineVariant:          "#3A3640",
 
-  // === PRIMARY (Safety Yellow) ===
+  // === PRIMARY (Safety Yellow — strong, not pastel) ===
   primary:                 "#FFB800",
-  onPrimary:               "#3B2000",
-  primaryContainer:        "#543900",
-  onPrimaryContainer:      "#FFDFA0",
+  onPrimary:               "#2A1600",
+  primaryContainer:        "#4A3000",
+  onPrimaryContainer:      "#FFE0A0",
 
   // === SECONDARY ===
-  secondary:               "#CCC2DC",
-  onSecondary:             "#332D41",
-  secondaryContainer:      "#4A4458",
-  onSecondaryContainer:    "#E8DEF8",
+  secondary:               "#D0C4E0",
+  onSecondary:             "#28223A",
+  secondaryContainer:      "#3E3850",
+  onSecondaryContainer:    "#EDE5F8",
 
   // === ERROR ===
   error:                   "#FFB4AB",
   onError:                 "#690005",
-  errorContainer:          "#93000A",
+  errorContainer:          "#7A0008",
   onErrorContainer:        "#FFDAD6",
 
-  // === STATUS SEMANTICS (not decorative) ===
-  pass:                    "#6DD672",
-  passContainer:           "#003A09",
-  onPassContainer:         "#A9F4A9",
+  // === STATUS SEMANTICS ===
+  pass:                    "#5CC860",
+  passContainer:           "#003308",
+  onPassContainer:         "#96E898",
 
-  fail:                    "#FFB4AB",
-  failContainer:           "#93000A",
+  fail:                    "#FF9D94",
+  failContainer:           "#7A0008",
   onFailContainer:         "#FFDAD6",
 
-  warn:                    "#FFB86C",
-  warnContainer:           "#4A2000",
-  onWarnContainer:         "#FFDBAD",
+  warn:                    "#FFA040",
+  warnContainer:           "#3D1A00",
+  onWarnContainer:         "#FFCFA0",
 
   // Scrim
-  scrim:                   "rgba(0,0,0,0.72)",
+  scrim:                   "rgba(0,0,0,0.82)",
 
   // === LEGACY COMPAT ===
-  text:             "#E6E1E5",
+  text:             "#F0ECF4",
   tint:             "#FFB800",
-  card:             "#1D1B20",
-  border:           "#49454F",
-  divider:          "#49454F",
-  muted:            "#211F26",
-  mutedForeground:  "#CAC4D0",
-  textPrimary:      "#E6E1E5",
-  textSecondary:    "#CAC4D0",
-  textMuted:        "#938F99",
+  card:             "#1A1820",
+  border:           "#3A3640",
+  divider:          "#3A3640",
+  muted:            "#201E28",
+  mutedForeground:  "#D0C8DA",
+  textPrimary:      "#F0ECF4",
+  textSecondary:    "#D0C8DA",
+  textMuted:        "#7A7585",
 
   // M3 corner radii
-  radius:     12,
-  radiusSm:    8,
+  radius:     10,
+  radiusSm:    6,
   radiusLg:   16,
   radiusFull: 100,
 };

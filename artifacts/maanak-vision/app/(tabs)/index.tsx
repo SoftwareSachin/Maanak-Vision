@@ -60,15 +60,18 @@ export default function InspectScreen() {
   return (
     <View style={[S.root, { backgroundColor: C.background }]}>
 
-      {/* Top App Bar */}
+      {/* Top App Bar — elevated, bold */}
       <View style={[S.appBar, { paddingTop: topPad }]}>
         <View style={S.appBarRow}>
-          <Text style={S.appBarTitle}>Maanak Vision</Text>
+          <View>
+            <Text style={S.appBarTitle}>Maanak Vision</Text>
+            <Text style={S.appBarSub}>Industrial QC · BIS 2026</Text>
+          </View>
           {inspections.length > 0 && (
-            <View style={S.statCapsules}>
-              <StatCapsule value={passCount} color={C.pass} bg={C.passContainer} />
-              <StatCapsule value={failCount} color={C.fail} bg={C.failContainer} />
-              <StatCapsule value={warnCount} color={C.warn} bg={C.warnContainer} />
+            <View style={S.statRow}>
+              <StatPill value={passCount} bg={C.passContainer} color={C.onPassContainer} />
+              <StatPill value={failCount} bg={C.failContainer} color={C.onFailContainer} />
+              <StatPill value={warnCount} bg={C.warnContainer} color={C.onWarnContainer} />
             </View>
           )}
         </View>
@@ -77,49 +80,44 @@ export default function InspectScreen() {
       {/* Active batch banner */}
       {currentBatch && (
         <View style={S.batchBanner}>
-          <View style={S.batchBannerLeft}>
-            <View style={S.batchActiveDot} />
-            <View>
-              <Text style={S.batchBannerName} numberOfLines={1}>{currentBatch.productName}</Text>
-              <Text style={S.batchBannerMeta}>
-                {currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail
-              </Text>
-            </View>
+          <View style={S.batchBannerDot} />
+          <View style={{ flex: 1 }}>
+            <Text style={S.batchBannerName} numberOfLines={1}>{currentBatch.productName}</Text>
+            <Text style={S.batchBannerMeta}>
+              {currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail
+            </Text>
           </View>
           <Pressable
             onPress={() => closeBatch(currentBatch.id)}
             style={({ pressed }) => [S.closeBatchBtn, { opacity: pressed ? 0.7 : 1 }]}
           >
-            <Text style={S.closeBatchText}>Close</Text>
+            <Text style={S.closeBatchText}>Close Batch</Text>
           </Pressable>
         </View>
       )}
 
-      {/* Filter Chip Bar */}
+      {/* Filter chips — filled tonal, not outlined */}
       <View style={S.filterBar}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.filterBarContent}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.filterScroll}>
           {FILTERS.map((f) => {
             const active = filter === f.key;
             return (
               <Pressable
                 key={f.key}
                 onPress={() => setFilter(f.key)}
-                style={[S.filterChip, active && S.filterChipActive]}
+                style={[S.chip, active && S.chipActive]}
               >
-                {active && (
-                  <MaterialCommunityIcons name="check" size={14} color={C.onSurfaceVariant} />
-                )}
-                <Text style={[S.filterChipText, active && S.filterChipTextActive]}>
-                  {f.label}
-                </Text>
+                {active && <MaterialCommunityIcons name="check" size={14} color={C.onSurface} />}
+                <Text style={[S.chipText, active && S.chipTextActive]}>{f.label}</Text>
               </Pressable>
             );
           })}
-          <Text style={S.filterCount}>{filtered.length} records</Text>
+          <View style={S.filterDivider} />
+          <Text style={S.recordCount}>{filtered.length} records</Text>
         </ScrollView>
       </View>
 
-      {/* Inspection list */}
+      {/* List */}
       <FlatList
         data={filtered.slice(0, 80)}
         keyExtractor={(item) => item.id}
@@ -127,34 +125,37 @@ export default function InspectScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={S.emptyState}>
-            <MaterialCommunityIcons name="magnify-scan" size={40} color={C.outlineVariant} />
+            <View style={[S.emptyIcon, { backgroundColor: C.surfaceContainer }]}>
+              <MaterialCommunityIcons name="magnify-scan" size={36} color={C.outline} />
+            </View>
             <Text style={S.emptyTitle}>No inspection records</Text>
             <Text style={S.emptyBody}>Start a batch and scan parts to see results here.</Text>
           </View>
         }
-        contentContainerStyle={{ paddingBottom: bottomPad + 100 }}
+        contentContainerStyle={{ paddingBottom: bottomPad + 100, flexGrow: 1 }}
       />
 
-      {/* Extended FAB */}
+      {/* Extended FAB — elevated, heavy */}
       <Pressable
         onPress={handleScan}
-        style={({ pressed }) => [S.fab, { bottom: bottomPad + (isWeb ? 80 : 68), opacity: pressed ? 0.88 : 1 }]}
+        style={({ pressed }) => [S.fab, { bottom: bottomPad + (isWeb ? 76 : 70), opacity: pressed ? 0.9 : 1 }]}
       >
-        <MaterialCommunityIcons name="barcode-scan" size={18} color={C.onPrimary} />
+        <MaterialCommunityIcons name="barcode-scan" size={20} color={C.onPrimary} />
         <Text style={S.fabText}>Scan Part</Text>
       </Pressable>
 
-      {/* Bottom sheet — Start batch */}
+      {/* Bottom sheet */}
       <Modal visible={showSheet} transparent animationType="slide" onRequestClose={() => setShowSheet(false)}>
         <Pressable style={S.scrim} onPress={() => setShowSheet(false)} />
-        <View style={[S.sheet, { paddingBottom: bottomPad + 20 }]}>
+        <View style={[S.sheet, { paddingBottom: bottomPad + 24 }]}>
           <View style={S.sheetHandle} />
           <Text style={S.sheetTitle}>New Inspection Batch</Text>
+          <Text style={S.sheetSub}>Name this batch to begin scanning</Text>
 
-          <View style={S.inputContainer}>
-            <MaterialCommunityIcons name="label-outline" size={18} color={C.onSurfaceVariant} style={S.inputIcon} />
+          <View style={S.inputRow}>
+            <MaterialCommunityIcons name="label-outline" size={20} color={C.outline} />
             <TextInput
-              style={S.sheetInput}
+              style={S.input}
               placeholder="Product or batch name"
               placeholderTextColor={C.outline}
               value={batchName}
@@ -166,16 +167,16 @@ export default function InspectScreen() {
           </View>
 
           {products.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.quickChipScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.quickScroll}>
               {products.map((p) => {
                 const sel = batchName === p.name;
                 return (
                   <Pressable
                     key={p.id}
                     onPress={() => setBatchName(p.name)}
-                    style={[S.quickChip, sel && S.quickChipSelected]}
+                    style={[S.quickChip, sel && S.quickChipActive]}
                   >
-                    <Text style={[S.quickChipText, sel && S.quickChipTextSelected]}>{p.name}</Text>
+                    <Text style={[S.quickChipText, sel && S.quickChipTextActive]}>{p.name}</Text>
                   </Pressable>
                 );
               })}
@@ -184,10 +185,10 @@ export default function InspectScreen() {
 
           <Pressable
             onPress={handleStart}
-            style={({ pressed }) => [S.startBtn, { opacity: batchName.trim() ? (pressed ? 0.88 : 1) : 0.38 }]}
+            style={({ pressed }) => [S.startBtn, { opacity: batchName.trim() ? (pressed ? 0.9 : 1) : 0.35 }]}
             disabled={!batchName.trim()}
           >
-            <MaterialCommunityIcons name="play-circle-outline" size={20} color={C.onPrimary} />
+            <MaterialCommunityIcons name="play-circle" size={22} color={C.onPrimary} />
             <Text style={S.startBtnText}>Start Batch</Text>
           </Pressable>
         </View>
@@ -196,10 +197,10 @@ export default function InspectScreen() {
   );
 }
 
-function StatCapsule({ value, color, bg }: { value: number; color: string; bg: string }) {
+function StatPill({ value, bg, color }: { value: number; bg: string; color: string }) {
   return (
-    <View style={[S.statCapsule, { backgroundColor: bg }]}>
-      <Text style={[S.statCapsuleNum, { color }]}>{value}</Text>
+    <View style={[S.statPill, { backgroundColor: bg }]}>
+      <Text style={[S.statPillNum, { color }]}>{value}</Text>
     </View>
   );
 }
@@ -209,11 +210,15 @@ const S = StyleSheet.create({
 
   appBar: {
     backgroundColor: C.surfaceContainerLow,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: C.outlineVariant,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    zIndex: 10,
   },
   appBarRow: {
-    height: 56,
+    height: 60,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -222,34 +227,43 @@ const S = StyleSheet.create({
   appBarTitle: {
     color: C.onSurface,
     fontSize: 22,
-    fontFamily: "Rajdhani_600SemiBold",
-    letterSpacing: 0.15,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.2,
+    lineHeight: 26,
   },
-  statCapsules: { flexDirection: "row", gap: 6 },
-  statCapsule: {
-    borderRadius: C.radiusFull,
+  appBarSub: {
+    color: C.primary,
+    fontSize: 11,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    lineHeight: 14,
+  },
+  statRow: { flexDirection: "row", gap: 5 },
+  statPill: {
+    borderRadius: C.radiusSm,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    minWidth: 32,
+    paddingVertical: 5,
+    minWidth: 34,
     alignItems: "center",
   },
-  statCapsuleNum: {
-    fontSize: 13,
+  statPillNum: {
+    fontSize: 14,
     fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.2,
   },
 
   batchBanner: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: C.primaryContainer,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 10,
+    borderBottomWidth: 1,
     borderBottomColor: C.outlineVariant,
   },
-  batchBannerLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  batchActiveDot: {
+  batchBannerDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -258,88 +272,101 @@ const S = StyleSheet.create({
   batchBannerName: {
     color: C.onPrimaryContainer,
     fontSize: 14,
-    fontFamily: "Rajdhani_600SemiBold",
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
+    flex: 1,
   },
   batchBannerMeta: {
     color: C.primary,
-    fontSize: 12,
-    fontFamily: "Rajdhani_400Regular",
-    marginTop: 1,
-    opacity: 0.8,
+    fontSize: 11,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.4,
+    opacity: 0.9,
   },
   closeBatchBtn: {
-    borderWidth: 1,
-    borderColor: C.primary,
-    borderRadius: C.radiusFull,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
+    backgroundColor: C.surface,
+    borderRadius: C.radiusSm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   closeBatchText: {
-    color: C.primary,
+    color: C.onSurface,
     fontSize: 12,
-    fontFamily: "Rajdhani_600SemiBold",
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 0.4,
   },
 
   filterBar: {
-    backgroundColor: C.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    backgroundColor: C.surfaceContainerLow,
+    borderBottomWidth: 1,
     borderBottomColor: C.outlineVariant,
   },
-  filterBarContent: {
+  filterScroll: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 8,
+    paddingVertical: 8,
+    gap: 6,
     alignItems: "center",
   },
-  filterChip: {
+  chip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    height: 32,
+    height: 30,
     paddingHorizontal: 12,
-    borderRadius: C.radiusFull,
-    borderWidth: 1,
-    borderColor: C.outlineVariant,
-    backgroundColor: "transparent",
+    borderRadius: C.radiusSm,
+    backgroundColor: C.surfaceContainerHigh,
   },
-  filterChipActive: {
+  chipActive: {
     backgroundColor: C.secondaryContainer,
-    borderColor: "transparent",
   },
-  filterChipText: {
+  chipText: {
     color: C.onSurfaceVariant,
     fontSize: 13,
-    fontFamily: "Rajdhani_500Medium",
+    fontFamily: "Rajdhani_600SemiBold",
     letterSpacing: 0.2,
   },
-  filterChipTextActive: {
+  chipTextActive: {
     color: C.onSecondaryContainer,
-    fontFamily: "Rajdhani_600SemiBold",
+    fontFamily: "Rajdhani_700Bold",
   },
-  filterCount: {
+  filterDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: C.outlineVariant,
+    marginHorizontal: 4,
+  },
+  recordCount: {
     color: C.outline,
     fontSize: 12,
-    fontFamily: "Rajdhani_400Regular",
-    marginLeft: 4,
+    fontFamily: "Rajdhani_500Medium",
   },
 
   emptyState: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     paddingTop: 80,
     paddingHorizontal: 40,
     gap: 12,
   },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: C.radiusLg,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
   emptyTitle: {
     color: C.onSurfaceVariant,
-    fontSize: 16,
-    fontFamily: "Rajdhani_500Medium",
-    letterSpacing: 0.15,
+    fontSize: 17,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
   },
   emptyBody: {
     color: C.outline,
     fontSize: 14,
-    fontFamily: "Rajdhani_400Regular",
+    fontFamily: "Rajdhani_500Medium",
     textAlign: "center",
     lineHeight: 20,
   },
@@ -351,98 +378,111 @@ const S = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     backgroundColor: C.primary,
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     height: 56,
     borderRadius: C.radiusLg,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    elevation: 8,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   fabText: {
     color: C.onPrimary,
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 0.1,
+    letterSpacing: 0.2,
   },
 
   scrim: { flex: 1, backgroundColor: C.scrim },
   sheet: {
     backgroundColor: C.surfaceContainerHigh,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    gap: 16,
+    gap: 14,
+    elevation: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   sheetHandle: {
-    width: 32,
+    width: 36,
     height: 4,
-    backgroundColor: C.onSurfaceVariant,
+    backgroundColor: C.outline,
     borderRadius: 2,
     alignSelf: "center",
-    opacity: 0.4,
-    marginBottom: 8,
+    marginBottom: 4,
+    opacity: 0.5,
   },
   sheetTitle: {
     color: C.onSurface,
-    fontSize: 20,
-    fontFamily: "Rajdhani_600SemiBold",
-    letterSpacing: 0.15,
+    fontSize: 22,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
   },
-  inputContainer: {
+  sheetSub: {
+    color: C.onSurfaceVariant,
+    fontSize: 13,
+    fontFamily: "Rajdhani_500Medium",
+    marginTop: -6,
+  },
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: C.surfaceContainerHighest,
     borderRadius: C.radiusSm,
-    paddingHorizontal: 12,
-    height: 52,
-    gap: 8,
+    paddingHorizontal: 14,
+    height: 54,
+    gap: 10,
   },
-  inputIcon: { opacity: 0.6 },
-  sheetInput: {
+  input: {
     flex: 1,
     fontSize: 16,
-    fontFamily: "Rajdhani_400Regular",
+    fontFamily: "Rajdhani_500Medium",
     color: C.onSurface,
     height: "100%",
   },
-  quickChipScroll: { flexGrow: 0 },
+  quickScroll: { flexGrow: 0 },
   quickChip: {
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: C.radiusFull,
-    borderWidth: 1,
-    borderColor: C.outlineVariant,
-    marginRight: 8,
+    paddingVertical: 8,
+    borderRadius: C.radiusSm,
+    backgroundColor: C.surfaceContainerHigh,
+    marginRight: 6,
   },
-  quickChipSelected: {
+  quickChipActive: {
     backgroundColor: C.primaryContainer,
-    borderColor: C.primary,
   },
   quickChipText: {
     color: C.onSurfaceVariant,
     fontSize: 13,
-    fontFamily: "Rajdhani_500Medium",
-  },
-  quickChipTextSelected: {
-    color: C.onPrimaryContainer,
     fontFamily: "Rajdhani_600SemiBold",
+  },
+  quickChipTextActive: {
+    color: C.onPrimaryContainer,
+    fontFamily: "Rajdhani_700Bold",
   },
   startBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    height: 56,
+    height: 54,
     backgroundColor: C.primary,
     borderRadius: C.radius,
+    elevation: 4,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   startBtnText: {
     color: C.onPrimary,
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 0.1,
+    letterSpacing: 0.2,
   },
 });

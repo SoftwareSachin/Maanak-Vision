@@ -31,29 +31,33 @@ const RESULT_CONFIG: Record<string, {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
   iconColor: string;
   containerBg: string;
-  chipText: string;
-  chipDot: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeLabel: string;
 }> = {
   pass: {
-    icon:        "check-circle-outline",
+    icon:        "check-circle",
     iconColor:   C.pass,
     containerBg: C.passContainer,
-    chipText:    "Pass",
-    chipDot:     C.pass,
+    badgeBg:     C.passContainer,
+    badgeText:   C.onPassContainer,
+    badgeLabel:  "PASS",
   },
   fail: {
-    icon:        "alert-circle-outline",
+    icon:        "alert-circle",
     iconColor:   C.fail,
     containerBg: C.failContainer,
-    chipText:    "Fail",
-    chipDot:     C.fail,
+    badgeBg:     C.failContainer,
+    badgeText:   C.onFailContainer,
+    badgeLabel:  "FAIL",
   },
   warning: {
-    icon:        "alert-outline",
+    icon:        "alert",
     iconColor:   C.warn,
     containerBg: C.warnContainer,
-    chipText:    "Caution",
-    chipDot:     C.warn,
+    badgeBg:     C.warnContainer,
+    badgeText:   C.onWarnContainer,
+    badgeLabel:  "CAUTION",
   },
 };
 
@@ -64,12 +68,12 @@ export default function InspectionCard({ inspection }: Props) {
 
   return (
     <View style={S.item}>
-      {/* Leading tonal icon container */}
+      {/* Leading: filled tonal icon container — 48dp */}
       <View style={[S.leading, { backgroundColor: cfg.containerBg }]}>
-        <MaterialCommunityIcons name={cfg.icon} size={20} color={cfg.iconColor} />
+        <MaterialCommunityIcons name={cfg.icon} size={22} color={cfg.iconColor} />
       </View>
 
-      {/* Text block */}
+      {/* Body text */}
       <View style={S.body}>
         <Text style={S.headline} numberOfLines={1}>{productName}</Text>
         <Text style={S.supporting} numberOfLines={1}>
@@ -78,10 +82,9 @@ export default function InspectionCard({ inspection }: Props) {
         </Text>
       </View>
 
-      {/* Trailing: outlined status chip */}
-      <View style={[S.chip, { borderColor: cfg.chipDot }]}>
-        <View style={[S.chipDot, { backgroundColor: cfg.chipDot }]} />
-        <Text style={[S.chipText, { color: cfg.chipDot }]}>{cfg.chipText}</Text>
+      {/* Trailing: filled tonal badge */}
+      <View style={[S.badge, { backgroundColor: cfg.badgeBg }]}>
+        <Text style={[S.badgeText, { color: cfg.badgeText }]}>{cfg.badgeLabel}</Text>
       </View>
     </View>
   );
@@ -89,19 +92,19 @@ export default function InspectionCard({ inspection }: Props) {
 
 const S = StyleSheet.create({
   item: {
-    minHeight: 72,
+    height: 72,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 16,
+    paddingVertical: 0,
+    gap: 14,
     backgroundColor: C.surface,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1,
     borderBottomColor: C.outlineVariant,
   },
   leading: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: C.radiusSm,
     alignItems: "center",
     justifyContent: "center",
@@ -109,37 +112,29 @@ const S = StyleSheet.create({
   },
   body: {
     flex: 1,
-    gap: 3,
+    gap: 4,
   },
   headline: {
     color: C.onSurface,
-    fontSize: 14,
-    fontFamily: "Rajdhani_500Medium",
-    letterSpacing: 0.15,
+    fontSize: 15,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
   },
   supporting: {
     color: C.onSurfaceVariant,
     fontSize: 12,
-    fontFamily: "Rajdhani_400Regular",
-    letterSpacing: 0.4,
+    fontFamily: "Rajdhani_500Medium",
+    letterSpacing: 0.3,
   },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderWidth: 1,
-    borderRadius: C.radiusFull,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: C.radiusSm,
+    alignSelf: "center",
   },
-  chipDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 99,
-  },
-  chipText: {
-    fontFamily: "Rajdhani_600SemiBold",
+  badgeText: {
+    fontFamily: "Rajdhani_700Bold",
     fontSize: 11,
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   },
 });

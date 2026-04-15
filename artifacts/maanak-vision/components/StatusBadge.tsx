@@ -8,10 +8,11 @@ interface Props {
   size?: "sm" | "lg";
 }
 
-const CONFIG: Record<InspectionResult, { dot: string; border: string; text: string; label: string }> = {
-  pass:    { dot: C.pass,  border: C.passContainer,  text: C.onPassContainer,  label: "Pass"    },
-  fail:    { dot: C.fail,  border: C.failContainer,  text: C.onFailContainer,  label: "Fail"    },
-  warning: { dot: C.warn,  border: C.warnContainer,  text: C.onWarnContainer,  label: "Caution" },
+// Filled tonal chips — solid background, high contrast text, no borders
+const CONFIG: Record<InspectionResult, { bg: string; text: string; label: string }> = {
+  pass:    { bg: C.passContainer,  text: C.onPassContainer,  label: "PASS"    },
+  fail:    { bg: C.failContainer,  text: C.onFailContainer,  label: "FAIL"    },
+  warning: { bg: C.warnContainer,  text: C.onWarnContainer,  label: "CAUTION" },
 };
 
 export default function StatusBadge({ result, size = "sm" }: Props) {
@@ -21,20 +22,18 @@ export default function StatusBadge({ result, size = "sm" }: Props) {
     <View style={[
       styles.chip,
       {
-        borderColor: cfg.dot,
-        paddingHorizontal: isLg ? 12 : 8,
-        paddingVertical: isLg ? 5 : 3,
-        gap: isLg ? 6 : 4,
-        borderRadius: C.radiusFull,
+        backgroundColor: cfg.bg,
+        paddingHorizontal: isLg ? 14 : 10,
+        paddingVertical: isLg ? 6 : 4,
+        borderRadius: C.radiusSm,
       },
     ]}>
-      <View style={[styles.dot, { backgroundColor: cfg.dot, width: isLg ? 7 : 5, height: isLg ? 7 : 5 }]} />
       <Text style={[
         styles.label,
         {
-          color: cfg.dot,
+          color: cfg.text,
           fontSize: isLg ? 13 : 11,
-          letterSpacing: isLg ? 0.5 : 0.4,
+          letterSpacing: isLg ? 1 : 0.8,
         },
       ]}>
         {cfg.label}
@@ -45,15 +44,9 @@ export default function StatusBadge({ result, size = "sm" }: Props) {
 
 const styles = StyleSheet.create({
   chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
     alignSelf: "flex-start",
   },
-  dot: {
-    borderRadius: 99,
-  },
   label: {
-    fontFamily: "Rajdhani_600SemiBold",
+    fontFamily: "Rajdhani_700Bold",
   },
 });
