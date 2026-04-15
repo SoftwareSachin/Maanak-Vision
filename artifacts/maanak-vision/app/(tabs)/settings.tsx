@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,94 +26,85 @@ export default function SettingsScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 20 }} showsVerticalScrollIndicator={false}>
 
-        {/* Section: Voice */}
-        <Row icon="mic" label="Voice language" right={
-          <Text style={S.rowRightText}>{lang}</Text>
-        } />
-
-        {/* Language selector — flat chips, no border, inline */}
-        <View style={[S.chipRow]}>
+        {/* Voice language */}
+        <Row icon="microphone-outline" label="Voice language" right={<Text style={S.rVal}>{lang}</Text>} />
+        <View style={S.chipRow}>
           {LANGS.map((l) => (
             <Pressable
               key={l}
               onPress={() => setLang(l)}
-              style={[S.langChip, { backgroundColor: lang === l ? "#F5C518" : "#1a1a1a" }]}
+              style={[S.langChip, { backgroundColor: lang === l ? "#F5C518" : "#111" }]}
             >
-              <Text style={[S.langChipText, { color: lang === l ? "#000" : "#6B6B6B" }]}>{l}</Text>
+              <Text style={[S.langChipText, { color: lang === l ? "#000" : "#555" }]}>{l}</Text>
             </Pressable>
           ))}
         </View>
 
-        <Divider />
+        <Sep />
 
-        <Row icon="mic" label='"Scan karo"' right={<Text style={S.rowRightText}>Start scan</Text>} rightDim />
-        <Row icon="mic" label='"Check karo"' right={<Text style={S.rowRightText}>Inspect part</Text>} rightDim />
-        <Row icon="mic" label='"Batch band karo"' right={<Text style={S.rowRightText}>Close batch</Text>} rightDim />
-        <Row icon="mic" label='"Report dikho"' right={<Text style={S.rowRightText}>Open vault</Text>} rightDim />
+        {/* Voice commands */}
+        <Row icon="microphone" label='"Scan karo"' right={<Text style={S.rDim}>Start scan</Text>} />
+        <Row icon="microphone" label='"Check karo"' right={<Text style={S.rDim}>Inspect part</Text>} />
+        <Row icon="microphone" label='"Batch band karo"' right={<Text style={S.rDim}>Close batch</Text>} />
+        <Row icon="microphone" label='"Report dikho"' right={<Text style={S.rDim}>Open vault</Text>} />
 
-        <Divider />
+        <Sep />
 
-        <Row
-          icon="smartphone"
-          label="Haptic feedback"
-          right={<Switch value={haptics} onValueChange={setHaptics} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        {/* Haptic patterns */}
+        <Row icon="vibrate" label='"·" — scan ready' right={<Text style={S.rDim}>1 short pulse</Text>} />
+        <Row icon="vibrate" label='"···" — defect detected' right={<Text style={S.rDim}>3 rapid pulses</Text>} />
+        <Row icon="vibrate" label='"——" — batch closed' right={<Text style={S.rDim}>1 long pulse</Text>} />
+
+        <Sep />
+
+        <Row icon="vibrate" label="Haptic feedback"
+          right={<Switch value={haptics} onValueChange={setHaptics} trackColor={{ false: "#1a1a1a", true: "#F5C518" }} thumbColor="#fff" />}
         />
-        <Row
-          icon="volume-2"
-          label="Sound alerts"
-          right={<Switch value={sound} onValueChange={setSound} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        <Row icon="volume-high" label="Sound alerts"
+          right={<Switch value={sound} onValueChange={setSound} trackColor={{ false: "#1a1a1a", true: "#F5C518" }} thumbColor="#fff" />}
         />
-        <Row
-          icon="zap"
-          label="Screen flash on result"
-          right={<Switch value={flash} onValueChange={setFlash} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        <Row icon="lightning-bolt" label="Screen flash on result"
+          right={<Switch value={flash} onValueChange={setFlash} trackColor={{ false: "#1a1a1a", true: "#F5C518" }} thumbColor="#fff" />}
         />
 
-        <Divider />
+        <Sep />
 
-        <Row
-          icon="database"
-          label="Stored data"
-          right={<Text style={S.rowRightText}>{inspections.length} scans · {batches.length} batches</Text>}
-          rightDim
+        <Row icon="database-outline" label="Stored records"
+          right={<Text style={S.rDim}>{inspections.length} scans · {batches.length} batches</Text>}
         />
         <Pressable
-          onPress={() =>
-            Alert.alert(
-              "Clear all data",
-              `Delete ${inspections.length} inspections and ${batches.length} batches?`,
-              [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: clearAll }]
-            )
-          }
-          style={({ pressed }) => [S.row, { borderBottomColor: "#2a2a2a", opacity: pressed ? 0.7 : 1 }]}
+          onPress={() => Alert.alert("Clear all data", `Delete ${inspections.length} inspections and ${batches.length} batches?`, [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete", style: "destructive", onPress: clearAll },
+          ])}
+          style={({ pressed }) => [S.row, { opacity: pressed ? 0.7 : 1 }]}
         >
-          <View style={[S.rowIcon, { backgroundColor: "#2E0D0D" }]}>
-            <Feather name="trash-2" size={14} color="#EF4444" />
+          <View style={[S.iconBox, { backgroundColor: "#1f0404" }]}>
+            <MaterialCommunityIcons name="delete-outline" size={16} color="#EF4444" />
           </View>
           <Text style={[S.rowLabel, { color: "#EF4444", marginLeft: 12 }]}>Clear all data</Text>
         </Pressable>
 
-        <Divider />
+        <Sep />
 
-        <Row icon="info" label="App" right={<Text style={S.rowRightText}>MAANAK VISION</Text>} rightDim />
-        <Row icon="tag" label="Version" right={<Text style={S.rowRightText}>1.0.0</Text>} rightDim />
-        <Row icon="shield" label="Standard" right={<Text style={S.rowRightText}>BIS 2026</Text>} rightDim />
-        <Row icon="map-pin" label="Built for" right={<Text style={S.rowRightText}>Indian MSME</Text>} rightDim />
+        <Row icon="information-outline" label="App" right={<Text style={S.rDim}>MAANAK VISION 1.0</Text>} />
+        <Row icon="shield-check-outline" label="Standard" right={<Text style={S.rDim}>BIS 2026</Text>} />
+        <Row icon="factory" label="Built for" right={<Text style={S.rDim}>Indian MSME workshops</Text>} />
 
       </ScrollView>
     </View>
   );
 }
 
-function Divider() {
-  return <View style={{ height: 24, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#2a2a2a" }} />;
+function Sep() {
+  return <View style={{ height: 20, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f" }} />;
 }
 
-function Row({ icon, label, right, rightDim }: { icon: any; label: string; right: React.ReactNode; rightDim?: boolean }) {
+function Row({ icon, label, right }: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: string; right: React.ReactNode }) {
   return (
-    <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-      <View style={S.rowIcon}>
-        <Feather name={icon} size={14} color="#6B6B6B" />
+    <View style={S.row}>
+      <View style={S.iconBox}>
+        <MaterialCommunityIcons name={icon} size={16} color="#555" />
       </View>
       <Text style={S.rowLabel}>{label}</Text>
       <View style={S.rowRight}>{right}</View>
@@ -124,51 +115,28 @@ function Row({ icon, label, right, rightDim }: { icon: any; label: string; right
 const S = StyleSheet.create({
   root: { flex: 1 },
   topBar: {
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    paddingHorizontal: 16, paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f",
   },
   title: { color: "#F5C518", fontSize: 20, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
   row: {
-    minHeight: 56,
-    flexDirection: "row",
-    alignItems: "center",
+    minHeight: 56, flexDirection: "row", alignItems: "center",
     paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f",
   },
-  rowIcon: {
-    width: 28, height: 28, borderRadius: 4,
-    backgroundColor: "#1a1a1a",
-    alignItems: "center", justifyContent: "center",
+  iconBox: {
+    width: 30, height: 30, borderRadius: 3,
+    backgroundColor: "#111", alignItems: "center", justifyContent: "center",
   },
-  rowLabel: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontFamily: "Rajdhani_500Medium",
-    marginLeft: 12,
-    flex: 1,
-  },
+  rowLabel: { color: "#E8E8E8", fontSize: 15, fontFamily: "Rajdhani_500Medium", marginLeft: 12, flex: 1 },
   rowRight: { alignItems: "flex-end" },
-  rowRightText: {
-    color: "#6B6B6B",
-    fontSize: 14,
-    fontFamily: "Rajdhani_400Regular",
-    textAlign: "right",
-  },
+  rVal: { color: "#A1A1A0", fontSize: 14, fontFamily: "Rajdhani_400Regular" },
+  rDim: { color: "#555", fontSize: 13, fontFamily: "Rajdhani_400Regular", textAlign: "right", maxWidth: 160 },
   chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    flexDirection: "row", flexWrap: "wrap",
+    paddingHorizontal: 16, paddingVertical: 10, gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f",
   },
-  langChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 3,
-  },
+  langChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 3 },
   langChipText: { fontSize: 13, fontFamily: "Rajdhani_600SemiBold" },
 });

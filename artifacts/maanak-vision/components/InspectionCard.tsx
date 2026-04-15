@@ -1,15 +1,17 @@
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { Inspection } from "@/context/InspectionContext";
-import { F } from "@/constants/fonts";
 
 interface Props {
   inspection: Inspection;
 }
 
 function timeStr(ts: number) {
-  return new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+  const d = new Date(ts);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
 }
 function dateStr(ts: number) {
   const d = new Date(ts);
@@ -18,41 +20,65 @@ function dateStr(ts: number) {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 }
 
+const DEFECT_LABEL: Record<string, string> = {
+  crack: "Crack",
+  scratch: "Scratch",
+  colour_mismatch: "Colour",
+  dimensional: "Dim. error",
+  none: "",
+};
+
+const RESULT_ICON: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
+  pass: "check-bold",
+  fail: "close-thick",
+  warning: "alert",
+};
+const RESULT_BG: Record<string, string> = {
+  pass: "#052210",
+  fail: "#1f0404",
+  warning: "#1f1100",
+};
+const RESULT_COLOR: Record<string, string> = {
+  pass: "#22C55E",
+  fail: "#EF4444",
+  warning: "#F59E0B",
+};
+const BADGE_LABEL: Record<string, string> = {
+  pass: "PASS",
+  fail: "FAIL",
+  warning: "WARN",
+};
+
 export default function InspectionCard({ inspection }: Props) {
-  const badgeBg =
-    inspection.result === "pass" ? "#22C55E" : inspection.result === "fail" ? "#EF4444" : "#F59E0B";
-  const defect =
-    inspection.defects[0]?.type !== "none"
-      ? inspection.defects[0]?.type.replace(/_/g, " ")
-      : null;
-  const iconName =
-    inspection.result === "pass" ? "check" : inspection.result === "fail" ? "x" : "alert-triangle";
-  const iconBg =
-    inspection.result === "pass" ? "#0D2E18" : inspection.result === "fail" ? "#2E0D0D" : "#2E1A00";
+  const { result, productName, defects, timestamp } = inspection;
+  const defect = defects[0]?.type !== "none" ? defects[0]?.type : null;
+  const iconBg = RESULT_BG[result];
+  const iconColor = RESULT_COLOR[result];
+  const badgeBg = RESULT_COLOR[result];
 
   return (
     <View style={styles.row}>
-      {/* Left: 40x40 icon */}
+      {/* Left: 36×36 result icon */}
       <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
-        <Feather name={iconName as any} size={16} color={badgeBg} />
+        <MaterialCommunityIcons
+          name={RESULT_ICON[result]}
+          size={15}
+          color={iconColor}
+        />
       </View>
 
-      {/* Center: name + meta */}
+      {/* Center */}
       <View style={styles.center}>
-        <Text style={styles.name} numberOfLines={1}>
-          {inspection.productName}
-        </Text>
+        <Text style={styles.name} numberOfLines={1}>{productName}</Text>
         <Text style={styles.meta}>
-          {dateStr(inspection.timestamp)} {timeStr(inspection.timestamp)}
-          {defect ? `  ·  ${defect}` : ""}
+          {dateStr(timestamp)} {timeStr(timestamp)}
+          {defect ? `  ·  ${DEFECT_LABEL[defect] ?? defect}` : ""}
         </Text>
       </View>
 
-      {/* Right: badge */}
+      {/* Right: filled pill badge */}
       <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-        <Text style={styles.badgeText}>
-          {inspection.result === "pass" ? "PASS" : inspection.result === "fail" ? "FAIL" : "WARN"}
-        </Text>
+        <Text style={styles.badgeText}>{BADGE_LABEL[result]}</Text>
       </View>
     </View>
   );
@@ -66,37 +92,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    borderBottomColor: "#1f1f1f",
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 3,
     alignItems: "center",
     justifyContent: "center",
   },
   center: { flex: 1, gap: 2 },
   name: {
-    color: "#FFFFFF",
+    color: "#E8E8E8",
     fontSize: 15,
     fontFamily: "Rajdhani_500Medium",
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   },
   meta: {
-    color: "#6B6B6B",
-    fontSize: 12,
+    color: "#555",
+    fontSize: 11,
     fontFamily: "Rajdhani_400Regular",
-    textTransform: "capitalize",
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 3,
   },
   badgeText: {
     color: "#fff",
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
 });

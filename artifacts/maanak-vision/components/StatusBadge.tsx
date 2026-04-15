@@ -12,7 +12,6 @@ const BG: Record<InspectionResult, string> = {
   fail: "#EF4444",
   warning: "#F59E0B",
 };
-
 const LABELS: Record<InspectionResult, string> = {
   pass: "PASS",
   fail: "FAIL",
@@ -20,12 +19,18 @@ const LABELS: Record<InspectionResult, string> = {
 };
 
 export default function StatusBadge({ result, size = "sm" }: Props) {
-  const fontSize = size === "lg" ? 18 : 11;
-  const paddingH = size === "lg" ? 16 : 10;
-  const paddingV = size === "lg" ? 6 : 4;
+  const isLg = size === "lg";
   return (
-    <View style={[styles.pill, { backgroundColor: BG[result], paddingHorizontal: paddingH, paddingVertical: paddingV }]}>
-      <Text style={[styles.text, { fontSize, letterSpacing: size === "lg" ? 2 : 0.8 }]}>
+    <View style={[
+      styles.badge,
+      {
+        backgroundColor: BG[result],
+        paddingHorizontal: isLg ? 14 : 9,
+        paddingVertical: isLg ? 5 : 3,
+        borderRadius: 3,
+      },
+    ]}>
+      <Text style={[styles.text, { fontSize: isLg ? 16 : 10, letterSpacing: isLg ? 1.5 : 1 }]}>
         {LABELS[result]}
       </Text>
     </View>
@@ -33,6 +38,6 @@ export default function StatusBadge({ result, size = "sm" }: Props) {
 }
 
 const styles = StyleSheet.create({
-  pill: { borderRadius: 20, alignSelf: "flex-start" },
+  badge: { alignSelf: "flex-start" },
   text: { color: "#fff", fontFamily: "Rajdhani_700Bold" },
 });

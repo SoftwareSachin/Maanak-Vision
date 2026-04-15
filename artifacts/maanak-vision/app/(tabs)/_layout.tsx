@@ -1,8 +1,7 @@
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
-import { F } from "@/constants/fonts";
 
 export default function TabLayout() {
   const isWeb = Platform.OS === "web";
@@ -11,25 +10,25 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#F5C518",
-        tabBarInactiveTintColor: "#6B6B6B",
+        tabBarInactiveTintColor: "#444",
         tabBarLabelStyle: {
           fontSize: 10,
-          fontFamily: F.bold,
-          letterSpacing: 1,
+          fontFamily: "Rajdhani_700Bold",
+          letterSpacing: 1.2,
           textTransform: "uppercase",
-          marginTop: 2,
+          marginTop: 1,
         },
         tabBarStyle: {
-          backgroundColor: "#1a1a1a",
+          backgroundColor: "#111",
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: "#2a2a2a",
+          borderTopColor: "#222",
           height: isWeb ? 84 : 56,
           paddingBottom: isWeb ? 16 : 6,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarBackground: () => (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#1a1a1a" }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#111" }]} />
         ),
       }}
     >
@@ -37,28 +36,36 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Inspect",
-          tabBarIcon: ({ color, size }) => <Feather name="search" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="magnify-scan" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="train"
         options={{
           title: "Train",
-          tabBarIcon: ({ color, size }) => <Feather name="camera" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="camera-iris" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="vault"
         options={{
           title: "Vault",
-          tabBarIcon: ({ color, size }) => <Feather name="shield" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="certificate-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, size }) => <Feather name="settings" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="tune-variant" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

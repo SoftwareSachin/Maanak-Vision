@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -59,7 +59,7 @@ export default function InspectScreen() {
   return (
     <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
 
-      {/* Header row — app name left, live stats right */}
+      {/* Header */}
       <View style={[S.header, { paddingTop: topPad + 8 }]}>
         <Text style={S.appName}>MAANAK VISION</Text>
         {inspections.length > 0 && (
@@ -74,32 +74,32 @@ export default function InspectScreen() {
         )}
       </View>
 
-      {/* Active batch — pinned strip below header */}
+      {/* Active batch strip */}
       {currentBatch && (
-        <View style={[S.batchStrip]}>
+        <View style={S.batchStrip}>
           <View style={[S.activePip, { backgroundColor: "#F5C518" }]} />
           <View style={{ flex: 1 }}>
             <Text style={S.batchName} numberOfLines={1}>{currentBatch.productName}</Text>
             <Text style={S.batchMeta}>{currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail</Text>
           </View>
           <Pressable onPress={() => closeBatch(currentBatch.id)} style={S.closeChip}>
-            <Text style={S.closeChipText}>CLOSE BATCH</Text>
+            <Text style={S.closeChipText}>CLOSE</Text>
           </Pressable>
         </View>
       )}
 
-      {/* Filter tabs */}
+      {/* Filter row */}
       <View style={S.filterBar}>
         {FILTERS.map((f) => (
           <Pressable key={f.key} onPress={() => setFilter(f.key)} style={S.filterTab}>
-            <Text style={[S.filterText, { color: filter === f.key ? "#F5C518" : "#6B6B6B" }]}>{f.label}</Text>
+            <Text style={[S.filterText, { color: filter === f.key ? "#F5C518" : "#555" }]}>{f.label}</Text>
             {filter === f.key && <View style={S.activeUnderline} />}
           </Pressable>
         ))}
         <Text style={S.filterTotal}>{filtered.length}</Text>
       </View>
 
-      {/* Inspection list — flat, no cards, no empty state illustration */}
+      {/* Flat inspection list */}
       <FlatList
         data={filtered.slice(0, 80)}
         keyExtractor={(item) => item.id}
@@ -113,16 +113,16 @@ export default function InspectScreen() {
         contentContainerStyle={{ paddingBottom: bottomPad + 90 }}
       />
 
-      {/* SCAN FAB */}
+      {/* FAB */}
       <Pressable
         onPress={handleScan}
         style={({ pressed }) => [S.fab, { bottom: bottomPad + (isWeb ? 84 : 70), opacity: pressed ? 0.85 : 1 }]}
       >
-        <Feather name="zap" size={16} color="#000" />
+        <MaterialCommunityIcons name="barcode-scan" size={18} color="#000" />
         <Text style={S.fabText}>SCAN PART</Text>
       </Pressable>
 
-      {/* Start batch sheet */}
+      {/* Batch sheet */}
       <Modal visible={showSheet} transparent animationType="slide" onRequestClose={() => setShowSheet(false)}>
         <Pressable style={S.overlay} onPress={() => setShowSheet(false)} />
         <View style={[S.sheet, { paddingBottom: bottomPad + 16 }]}>
@@ -145,7 +145,7 @@ export default function InspectScreen() {
                   onPress={() => setBatchName(p.name)}
                   style={[S.quickChip, { backgroundColor: batchName === p.name ? "#F5C518" : "#1a1a1a" }]}
                 >
-                  <Text style={{ color: batchName === p.name ? "#000" : "#6B6B6B", fontSize: 13, fontFamily: "Rajdhani_500Medium" }}>
+                  <Text style={{ color: batchName === p.name ? "#000" : "#555", fontSize: 13, fontFamily: "Rajdhani_500Medium" }}>
                     {p.name}
                   </Text>
                 </Pressable>
@@ -173,56 +173,41 @@ const S = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    borderBottomColor: "#1f1f1f",
   },
-  appName: {
-    color: "#F5C518",
-    fontSize: 20,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 3,
-  },
+  appName: { color: "#F5C518", fontSize: 20, fontFamily: "Rajdhani_700Bold", letterSpacing: 3 },
   statRow: { flexDirection: "row", alignItems: "center" },
   statNum: { fontSize: 18, fontFamily: "Rajdhani_700Bold" },
   statSep: { color: "#2a2a2a", fontSize: 16, marginHorizontal: 1 },
-  statLabel: { color: "#6B6B6B", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
+  statLabel: { color: "#444", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
   batchStrip: {
     flexDirection: "row",
     alignItems: "center",
     height: 48,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
-    gap: 0,
+    borderBottomColor: "#1f1f1f",
   },
   activePip: { width: 3, height: "100%", marginRight: 13 },
   batchName: { color: "#fff", fontSize: 14, fontFamily: "Rajdhani_600SemiBold" },
-  batchMeta: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
-  closeChip: {
-    marginRight: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 3,
-  },
-  closeChipText: { color: "#6B6B6B", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
+  batchMeta: { color: "#555", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
+  closeChip: { marginRight: 14, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#1a1a1a", borderRadius: 3 },
+  closeChipText: { color: "#555", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
   filterBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     height: 36,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    borderBottomColor: "#1f1f1f",
     gap: 20,
   },
   filterTab: { alignItems: "center", position: "relative", paddingBottom: 1 },
   filterText: { fontSize: 13, fontFamily: "Rajdhani_600SemiBold", letterSpacing: 0.6 },
   activeUnderline: { position: "absolute", bottom: 0, left: 0, right: 0, height: 2, backgroundColor: "#F5C518" },
-  filterTotal: { marginLeft: "auto", color: "#2a2a2a", fontSize: 12, fontFamily: "Rajdhani_400Regular" },
-  // Empty state — plain left-aligned text only, no icon
+  filterTotal: { marginLeft: "auto", color: "#333", fontSize: 12, fontFamily: "Rajdhani_400Regular" },
   emptyRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#2a2a2a",
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f",
   },
   emptyText: { color: "#2a2a2a", fontSize: 13, fontFamily: "Rajdhani_400Regular" },
   fab: {
@@ -234,32 +219,32 @@ const S = StyleSheet.create({
     backgroundColor: "#F5C518",
     paddingHorizontal: 20,
     height: 52,
-    borderRadius: 6,
+    borderRadius: 4,
     elevation: 0,
     shadowOpacity: 0,
   },
   fabText: { color: "#000", fontSize: 16, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)" },
   sheet: {
     backgroundColor: "#111",
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#2a2a2a",
+    borderTopColor: "#222",
     paddingHorizontal: 16,
     paddingTop: 16,
   },
   sheetHandle: { width: 36, height: 3, backgroundColor: "#2a2a2a", borderRadius: 2, alignSelf: "center", marginBottom: 16 },
   sheetInput: {
     height: 52,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "#0f0f0f",
     borderBottomWidth: 1,
     borderBottomColor: "#2a2a2a",
-    paddingHorizontal: 14,
-    fontSize: 16,
+    paddingHorizontal: 0,
+    fontSize: 17,
     fontFamily: "Rajdhani_500Medium",
     color: "#fff",
     marginBottom: 12,
   },
   quickChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 3, marginRight: 8 },
-  startBtn: { height: 60, backgroundColor: "#F5C518", borderRadius: 6, alignItems: "center", justifyContent: "center" },
+  startBtn: { height: 60, backgroundColor: "#F5C518", borderRadius: 4, alignItems: "center", justifyContent: "center" },
   startBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
 });
