@@ -1,0 +1,62 @@
+Role: You are a Senior Product Manager and Lead UI/UX Architect at a Bengaluru-based product studio. Your team has shipped consumer-grade apps used by millions of Indian users across Tier 1–3 cities. You have been contracted to design a professional industrial mobile application named "Maanak Vision" (Maanak = 'Standard' in Hindi) for the Indian MSME manufacturing sector.
+Objective: Design an intuitive, rugged, and high-trust mobile application that enables unorganized Indian workshops to perform Quality Control (QC) checks and BIS (Bureau of Indian Standards) 2026 compliance using only a smartphone camera and on-device AI.
+
+Core User Persona:
+"Sunil" — 45-year-old workshop supervisor in a brass foundry. Comfortable with WhatsApp and YouTube. Finds enterprise software intimidating. Works in a loud, dusty, dimly lit environment with oily hands. Needs an app that feels as intuitive as Google Pay, not as complex as SAP.
+
+Task: Produce a detailed Product Requirement Document (PRD) and UI/UX Design System covering the following:
+
+1. Feature Set & Functional Requirements
+
+Edge-AI Vision Inspection: Design a "Guided Capture" mode where the user positions the product under the phone camera. The AI provides real-time OK / NOT OK detection for surface defects (cracks, scratches, colour mismatch) and dimensional accuracy. The feedback must be instant and require zero reading — colour and sound carry the result.
+"Five-Shot" Training (Few-Shot Learning): A workflow where a non-technical factory owner can teach the app a new product standard by photographing 5 samples of a "Perfect Part." The UI must make this feel as simple as adding a contact on WhatsApp — hide the ML complexity entirely behind a friendly, step-counted progress flow.
+2026 BIS Compliance Vault: A module that auto-generates tamper-proof digital inspection logs and Retention Sample records per the 2026 BIS mandate. Auto-generates scannable QR-code ISI labels for certified batches. Feels like the GST portal — structured and official — but with the clarity of a CRED receipt.
+Vernacular Voice-Command Triage: Hands-free operation via voice for Hindi, Hinglish, and regional dialects. Designed for a user whose hands are covered in machine oil. Must feel as natural as asking Google Assistant a question in Hindi.
+Offline-First Architecture: Heavy ML models run locally on a ₹15,000 Android phone (Snapdragon 6-series). Inspection logs sync to the cloud only when Wi-Fi is detected. The sync state must be visible at all times — like the upload indicator in Google Photos.
+
+
+2. UI/UX Design System — "Indian Industrial" Theme
+Do NOT design this to look like a generic AI tool, a Silicon Valley SaaS dashboard, or a template-based app. Design it the way the Swiggy or PhonePe product team would: opinionated, dense where it needs to be, brutally functional, and unmistakably built for India.
+
+Visual Language:
+
+Palette: "Safety Yellow" (#F5C518) as the primary action colour on a Deep Charcoal (#1C1C1E) base — high visibility in dusty, low-light factory environments. Status colours are non-negotiable: Green = Pass, Red = Fail, Amber = Warning. No pastels, no gradients, no glassmorphism.
+Typography: Use a sturdy, geometric sans-serif (think Rajdhani or a similar industrial-grade Indian typeface). Body text must be legible at arm's length. Minimum 16sp for body, 20sp for status labels.
+Touch Targets: All primary buttons minimum 60dp height — designed for gloved or greasy hands. No small tap targets anywhere in the primary flow.
+Iconography: Literal, real-world icons only. A caliper for dimensional check. A magnifying glass over metal for surface inspection. A stamp for BIS certification. No abstract vector art, no Lottie-animated AI brain icons, no floating orbs.
+
+
+Navigation:
+
+Bottom navigation bar with maximum 4 tabs — thumb-reachable on any screen size, like Swiggy's tab bar.
+Primary CTA (Scan / Inspect) is a large, persistent floating button — always accessible, never buried.
+Zero-text interaction where possible: colour-coded cards (Green/Red/Amber) communicate pass/fail without requiring the user to read a result label.
+
+
+Audio-Visual Feedback:
+
+Distinct haptic patterns: 1 short pulse = scan ready, 3 rapid pulses = defect detected, 1 long pulse = batch complete.
+Loud, distinct sound cues for "Batch Complete" (success chime) and "Defect Detected" (alert beep) — audible over factory floor noise. Users must be able to set volume independently from system volume.
+Visual flash overlay: full-screen green flash for Pass, red flash for Fail — visible even in peripheral vision.
+
+
+
+
+3. User Journey Map
+Map the complete journey from first app launch to generating an export-ready Quality Certificate in 4 steps or fewer. Each step must include: the screen name, the primary user action, the system response, and the sensory feedback (haptic + audio + visual).
+
+4. Technical Constraints
+
+Device target: Android-first. Snapdragon 6-series processors. 4GB RAM. 64GB storage.
+Image Enhancement pipeline: The AI must pre-process every image for dust, low-light, motion blur, and lens glare before running defect detection — the user should never need to retake a photo due to environmental conditions.
+Model size constraint: All on-device ML models must fit within 800MB combined storage.
+Connectivity assumption: Treat Wi-Fi as rare and mobile data as metered. Design every core flow for zero-network operation.
+
+
+5. Output Format
+Structure your response with:
+
+Clear section headings
+Feature specs in concise bullet points
+A UI Design Specs table at the end covering: component name, minimum size, colour token, interaction state, and accessibility note
+Where relevant, describe the screen layout as a wireframe in plain text (e.g., "Top bar | Camera viewfinder | Bottom action strip")

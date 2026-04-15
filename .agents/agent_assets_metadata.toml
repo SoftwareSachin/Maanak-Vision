@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "n3QDsWVHZeAhbvPuHy9dQ"
+uri = "file://artifacts/maanak-vision/assets/images/icon.png"
+type = "image"
+title = "maanak vision app icon"
