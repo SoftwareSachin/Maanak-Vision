@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -11,199 +11,131 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColors } from "@/hooks/useColors";
 import type { InspectionResult } from "@/context/InspectionContext";
 
 export default function ResultScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     result: InspectionResult;
     productName: string;
     defectType: string;
     defectDesc: string;
-    inspectionId: string;
   }>();
+  const result = params.result ?? "pass";
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const result = params.result ?? "pass";
-  const scaleAnim = React.useRef(new Animated.Value(0.5)).current;
-  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+  const [phase, setPhase] = useState<"flash" | "card">("flash");
+  const flashOpacity = useRef(new Animated.Value(1)).current;
+  const cardAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, tension: 60, friction: 8 }),
-      Animated.timing(opacityAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start();
-
-    if (Platform.OS !== "web") {
-      if (result === "fail") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      } else if (result === "pass") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    }
-  }, []);
-
-  const bgColor =
-    result === "pass"
-      ? colors.passBackground
-      : result === "fail"
-      ? colors.failBackground
-      : colors.warningBackground;
-
-  const accentColor =
-    result === "pass"
-      ? colors.pass
-      : result === "fail"
-      ? colors.fail
-      : colors.warning;
-
-  const iconName =
-    result === "pass"
-      ? "check-circle"
-      : result === "fail"
-      ? "x-circle"
-      : "alert-circle";
-
+  const resultColor =
+    result === "pass" ? "#22C55E" : result === "fail" ? "#EF4444" : "#F59E0B";
+  const resultBg =
+    result === "pass" ? "#0D2E18" : result === "fail" ? "#2E0D0D" : "#2E1A00";
   const resultLabel =
     result === "pass" ? "PASS" : result === "fail" ? "FAIL" : "CAUTION";
-
-  const resultMessage =
+  const resultMsg =
     result === "pass"
       ? "Part meets all quality standards"
       : result === "fail"
       ? "Defect detected — remove from batch"
-      : "Minor issue found — inspect manually";
+      : "Minor issue — inspect manually";
+  const hasDefect =
+    params.defectType && params.defectType !== "none";
+
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      if (result === "fail") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }
+
+    // Flash for 400ms, then transition to card
+    const t = setTimeout(() => {
+      Animated.timing(flashOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        setPhase("card");
+        Animated.timing(cardAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+      });
+    }, 400);
+
+    return () => clearTimeout(t);
+  }, []);
+
+  if (phase === "flash") {
+    return (
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { backgroundColor: resultColor, opacity: flashOpacity }]}
+      />
+    );
+  }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.resultHeader,
-          { backgroundColor: bgColor, paddingTop: topPad + 12 },
-        ]}
-      >
-        <Animated.View
-          style={{
-            alignItems: "center",
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
-          }}
+    <Animated.View
+      style={[styles.container, { opacity: cardAnim }]}
+    >
+      {/* Result header block */}
+      <View style={[styles.resultHeader, { backgroundColor: resultBg, paddingTop: topPad + 16 }]}>
+        <Text style={[styles.resultLabel, { color: resultColor }]}>{resultLabel}</Text>
+        <Text style={[styles.resultMsg, { color: resultColor }]}>{resultMsg}</Text>
+      </View>
+
+      {/* Detail rows — tight like a receipt */}
+      <View style={styles.rows}>
+        <Row label="PRODUCT" value={params.productName ?? "Unknown"} />
+        {hasDefect && (
+          <Row label="DEFECT" value={(params.defectType ?? "").replace(/_/g, " ").toUpperCase()} valueColor="#F59E0B" />
+        )}
+        {hasDefect && params.defectDesc && (
+          <Row label="DETAIL" value={params.defectDesc} />
+        )}
+        <Row
+          label="BIS STATUS"
+          value={result === "pass" ? "COMPLIANT" : "NON-COMPLIANT"}
+          valueColor={result === "pass" ? "#22C55E" : "#EF4444"}
+        />
+        <Row
+          label="TIME"
+          value={new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+        />
+      </View>
+
+      {/* Actions */}
+      <View style={[styles.actions, { paddingBottom: bottomPad + 12 }]}>
+        <Pressable
+          onPress={() => router.replace("/scan")}
+          style={({ pressed }) => [styles.primaryBtn, { opacity: pressed ? 0.85 : 1 }]}
         >
-          <Feather name={iconName} size={80} color={accentColor} />
-          <Text style={[styles.resultLabel, { color: accentColor }]}>
-            {resultLabel}
-          </Text>
-          <Text style={[styles.resultMessage, { color: accentColor }]}>
-            {resultMessage}
-          </Text>
-        </Animated.View>
+          <Feather name="zap" size={18} color="#1C1C1E" />
+          <Text style={styles.primaryBtnText}>LOG &amp; NEXT</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.replace("/")}
+          style={({ pressed }) => [styles.secondaryBtn, { opacity: pressed ? 0.7 : 1 }]}
+        >
+          <Text style={styles.secondaryBtnText}>BACK TO HOME</Text>
+        </Pressable>
       </View>
-
-      <View style={styles.detailSection}>
-        <View style={[styles.detailCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <DetailRow
-            icon="cpu"
-            label="PRODUCT"
-            value={params.productName ?? "Unknown Part"}
-            colors={colors}
-          />
-          {params.defectType && params.defectType !== "none" && (
-            <DetailRow
-              icon="alert-triangle"
-              label="DEFECT"
-              value={params.defectType.replace(/_/g, " ").toUpperCase()}
-              valueColor={accentColor}
-              colors={colors}
-            />
-          )}
-          {params.defectDesc && params.defectDesc !== "" && params.defectType !== "none" && (
-            <DetailRow
-              icon="info"
-              label="DETAIL"
-              value={params.defectDesc}
-              colors={colors}
-            />
-          )}
-          <DetailRow
-            icon="shield"
-            label="BIS STATUS"
-            value={result === "pass" ? "COMPLIANT" : "NON-COMPLIANT"}
-            valueColor={result === "pass" ? colors.pass : colors.fail}
-            colors={colors}
-          />
-          <DetailRow
-            icon="clock"
-            label="TIME"
-            value={new Date().toLocaleTimeString("en-IN")}
-            colors={colors}
-          />
-        </View>
-
-        <View style={styles.actions}>
-          <Pressable
-            onPress={() => router.replace("/scan")}
-            style={({ pressed }) => [
-              styles.scanNextBtn,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Feather name="zap" size={20} color={colors.primaryForeground} />
-            <Text style={[styles.scanNextText, { color: colors.primaryForeground }]}>
-              SCAN NEXT PART
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => router.replace("/")}
-            style={({ pressed }) => [
-              styles.doneBtn,
-              {
-                borderColor: colors.border,
-                backgroundColor: colors.card,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Text style={[styles.doneBtnText, { color: colors.mutedForeground }]}>
-              DONE
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+    </Animated.View>
   );
 }
 
-function DetailRow({
-  icon,
+function Row({
   label,
   value,
   valueColor,
-  colors,
 }: {
-  icon: string;
   label: string;
   value: string;
   valueColor?: string;
-  colors: ReturnType<typeof useColors>;
 }) {
   return (
-    <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
-      <View style={styles.detailLeft}>
-        <Feather name={icon as any} size={14} color={colors.mutedForeground} />
-        <Text style={[styles.detailLabel, { color: colors.mutedForeground }]}>
-          {label}
-        </Text>
-      </View>
-      <Text
-        style={[
-          styles.detailValue,
-          { color: valueColor ?? colors.foreground },
-        ]}
-      >
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={[styles.rowValue, { color: valueColor ?? "#F0F0F0" }]} numberOfLines={2}>
         {value}
       </Text>
     </View>
@@ -211,89 +143,80 @@ function DetailRow({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
   resultHeader: {
-    paddingBottom: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
   },
   resultLabel: {
-    fontSize: 52,
+    fontSize: 56,
     fontWeight: "900",
-    letterSpacing: 8,
-    marginTop: 12,
+    letterSpacing: 6,
+    marginBottom: 6,
   },
-  resultMessage: {
-    fontSize: 16,
+  resultMsg: {
+    fontSize: 15,
     fontWeight: "600",
-    textAlign: "center",
-    marginTop: 8,
-    letterSpacing: 0.3,
-    opacity: 0.8,
+    opacity: 0.75,
+    letterSpacing: 0.2,
   },
-  detailSection: {
+  rows: {
     flex: 1,
-    padding: 20,
-    gap: 16,
   },
-  detailCard: {
-    borderRadius: 10,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  detailRow: {
+  row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
+    borderBottomColor: "#1A1A1A",
   },
-  detailLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+  rowLabel: {
+    color: "#444",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.5,
   },
-  detailLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1,
-  },
-  detailValue: {
+  rowValue: {
     fontSize: 14,
     fontWeight: "700",
-    maxWidth: "60%",
     textAlign: "right",
+    maxWidth: "65%",
+    textTransform: "capitalize",
   },
   actions: {
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    gap: 10,
   },
-  scanNextBtn: {
+  primaryBtn: {
+    backgroundColor: "#F5C518",
+    borderRadius: 6,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    gap: 8,
     paddingVertical: 18,
-    borderRadius: 10,
     minHeight: 60,
   },
-  scanNextText: {
-    fontSize: 17,
+  primaryBtnText: {
+    color: "#1C1C1E",
+    fontSize: 16,
     fontWeight: "900",
     letterSpacing: 2,
   },
-  doneBtn: {
+  secondaryBtn: {
+    paddingVertical: 14,
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    minHeight: 56,
   },
-  doneBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 2,
+  secondaryBtnText: {
+    color: "#444",
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 1.5,
   },
 });

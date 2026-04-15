@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useColors } from "@/hooks/useColors";
 import type { InspectionResult } from "@/context/InspectionContext";
 
 interface Props {
@@ -11,41 +10,35 @@ interface Props {
 const LABELS: Record<InspectionResult, string> = {
   pass: "PASS",
   fail: "FAIL",
-  warning: "CAUTION",
+  warning: "WARN",
+};
+
+const BG: Record<InspectionResult, string> = {
+  pass: "#22C55E",
+  fail: "#EF4444",
+  warning: "#F59E0B",
 };
 
 export default function StatusBadge({ result, size = "sm" }: Props) {
-  const colors = useColors();
-
-  const bg =
-    result === "pass"
-      ? colors.passBackground
-      : result === "fail"
-      ? colors.failBackground
-      : colors.warningBackground;
-
-  const fg =
-    result === "pass"
-      ? colors.pass
-      : result === "fail"
-      ? colors.fail
-      : colors.warning;
-
-  const fontSize = size === "lg" ? 22 : 13;
-  const paddingH = size === "lg" ? 20 : 10;
-  const paddingV = size === "lg" ? 10 : 4;
+  const fontSize = size === "lg" ? 20 : 11;
+  const paddingH = size === "lg" ? 18 : 8;
+  const paddingV = size === "lg" ? 8 : 3;
 
   return (
     <View
       style={[
         styles.badge,
-        { backgroundColor: bg, paddingHorizontal: paddingH, paddingVertical: paddingV },
+        {
+          backgroundColor: BG[result],
+          paddingHorizontal: paddingH,
+          paddingVertical: paddingV,
+        },
       ]}
     >
       <Text
         style={[
           styles.label,
-          { color: fg, fontSize, letterSpacing: size === "lg" ? 3 : 1.5 },
+          { fontSize, letterSpacing: size === "lg" ? 2 : 0.8 },
         ]}
       >
         {LABELS[result]}
@@ -56,10 +49,11 @@ export default function StatusBadge({ result, size = "sm" }: Props) {
 
 const styles = StyleSheet.create({
   badge: {
-    borderRadius: 4,
+    borderRadius: 20,
     alignSelf: "flex-start",
   },
   label: {
+    color: "#fff",
     fontWeight: "800",
   },
 });

@@ -1,7 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import StatusBadge from "./StatusBadge";
 import type { Inspection } from "@/context/InspectionContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -14,123 +13,94 @@ function formatTime(ts: number) {
   return d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatDate(ts: number) {
-  const d = new Date(ts);
-  return d.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default function InspectionCard({ inspection }: Props) {
   const colors = useColors();
 
-  const borderColor =
+  const badgeBg =
     inspection.result === "pass"
-      ? colors.pass
+      ? "#22C55E"
       : inspection.result === "fail"
-      ? colors.fail
-      : colors.warning;
+      ? "#EF4444"
+      : "#F59E0B";
+
+  const defectText =
+    inspection.defects[0]?.type !== "none"
+      ? inspection.defects[0]?.type.replace(/_/g, " ")
+      : null;
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: colors.card,
-          borderLeftColor: borderColor,
-          borderColor: colors.border,
-        },
-      ]}
-    >
-      <View style={styles.top}>
-        <View style={styles.titleRow}>
-          <Feather name="cpu" size={14} color={colors.mutedForeground} />
-          <Text style={[styles.productName, { color: colors.foreground }]}>
-            {inspection.productName}
-          </Text>
-        </View>
-        <StatusBadge result={inspection.result} />
+    <View style={[styles.row, { borderBottomColor: "#2A2A2A" }]}>
+      <View
+        style={[
+          styles.resultIcon,
+          { backgroundColor: inspection.result === "pass" ? "#0D2E18" : inspection.result === "fail" ? "#2E0D0D" : "#2E1800" },
+        ]}
+      >
+        <Feather
+          name={inspection.result === "pass" ? "check" : inspection.result === "fail" ? "x" : "alert-triangle"}
+          size={14}
+          color={badgeBg}
+        />
       </View>
 
-      <View style={styles.meta}>
-        <Text style={[styles.metaText, { color: colors.mutedForeground }]}>
-          {formatDate(inspection.timestamp)} · {formatTime(inspection.timestamp)}
+      <View style={styles.center}>
+        <Text style={[styles.productName, { color: "#F0F0F0" }]} numberOfLines={1}>
+          {inspection.productName}
         </Text>
-        {inspection.defects.length > 0 && inspection.defects[0].type !== "none" && (
-          <View style={styles.defectRow}>
-            <Feather name="alert-triangle" size={12} color={colors.warning} />
-            <Text style={[styles.defectText, { color: colors.warning }]}>
-              {inspection.defects.map((d) => d.type.replace("_", " ")).join(", ")}
-            </Text>
-          </View>
-        )}
+        <Text style={[styles.meta, { color: "#555" }]}>
+          {formatTime(inspection.timestamp)}
+          {defectText ? `  ·  ${defectText}` : ""}
+        </Text>
       </View>
 
-      {inspection.bisCompliant && (
-        <View style={styles.bisRow}>
-          <Feather name="shield" size={12} color={colors.pass} />
-          <Text style={[styles.bisText, { color: colors.pass }]}>BIS 2026 Compliant</Text>
-        </View>
-      )}
+      <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+        <Text style={styles.badgeText}>
+          {inspection.result === "pass" ? "PASS" : inspection.result === "fail" ? "FAIL" : "WARN"}
+        </Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderLeftWidth: 4,
-  },
-  top: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  titleRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    gap: 12,
+  },
+  resultIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  center: {
     flex: 1,
-    marginRight: 12,
+    gap: 2,
   },
   productName: {
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.1,
   },
   meta: {
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "500",
-  },
-  defectRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  defectText: {
-    fontSize: 13,
-    fontWeight: "600",
     textTransform: "capitalize",
   },
-  bisRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 8,
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
-  bisText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+  badgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.8,
   },
 });
