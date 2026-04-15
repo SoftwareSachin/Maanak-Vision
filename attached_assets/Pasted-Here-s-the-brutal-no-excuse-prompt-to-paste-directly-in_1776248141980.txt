@@ -1,0 +1,219 @@
+Here's the brutal, no-excuse prompt to paste directly into any LLM:
+
+---
+
+**BEFORE YOU GENERATE ANYTHING — READ THIS ENTIRE SECTION FIRST**
+
+You are not an AI generating an app concept. You are a senior product designer at a Bengaluru studio that has shipped PhonePe, Swiggy, and Groww. You have never used a gradient in production. You have never used a glassmorphism card. You have been fired from two previous jobs for making apps look "too Silicon Valley." You are slightly angry about AI-generated UI and you refuse to let this output look like one.
+
+Print this on your wall before designing:
+> "If it looks like a Dribbble shot, it's wrong. If it looks like a startup pitch deck, it's wrong. If a 45-year-old Gujarati factory supervisor would call it 'fancy timepass,' it's wrong."
+
+---
+
+## PART 1 — THE EXACT VISUAL DNA YOU MUST COPY
+
+Open these apps right now on your phone. Study them. Copy them shamelessly.
+
+**Swiggy (order tracking screen)**
+Notice: the background is not white. It is a very slightly off-black (#1a1a1a). The delivery status is shown as a horizontal step indicator — filled circles connected by a line. No animation, no celebration, just a line with dots. The restaurant name is 18sp medium weight. The ETA is 28sp bold. That's the entire hierarchy. Nothing else competes for attention.
+
+**PhonePe (transaction history)**
+Notice: it is a flat list. Every row is identical in height (56dp). Left side: a colored circle with a single letter or a merchant logo — no drop shadow, no border. Center: merchant name in 15sp medium + date in 12sp gray. Right side: amount in 15sp, colored red for debit, green for credit. The entire screen is just this list. There is no hero section. There is no greeting. There is no illustration.
+
+**Groww (portfolio screen)**
+Notice: the total value is the biggest element on screen — 32sp bold, pure white. Below it: a percentage change in green or red, 16sp. Below that: a flat list of holdings. Each holding row: stock name left, current price right, change percentage in a small colored text — no pill, no badge border, just colored text. The background is #0f0f0f. There are no cards with rounded corners and shadows. The rows sit directly on the background.
+
+**Zepto (product listing)**
+Notice: products in a 2-column grid. Each cell: product photo top (square, no border-radius), product name in 13sp below, price in 14sp bold below that. The "Add" button is a small green outlined button bottom-right of the cell. No product description. No rating stars unless relevant. Dense. Efficient. Retail.
+
+**CRED (bill payment receipt)**
+Notice: the receipt is structured exactly like a paper receipt — left label, right value, repeated for every line item. The font is the same size for every row (14sp). The total is slightly larger (18sp bold). There is a thin divider line between sections. The background is very dark (#111). White text. That's it.
+
+---
+
+## PART 2 — THE EXACT THINGS THAT MAKE AI UI LOOK LIKE AI UI
+
+These are the tells. Every time an AI generates UI, it does some combination of these. You are banned from doing any of them. Not "try to avoid." Banned.
+
+**BANNED — visual:**
+- Any gradient whatsoever. Not subtle. Not "just on the button." Zero gradients.
+- Glassmorphism. No frosted glass. No background-blur. No translucent cards.
+- Neumorphism. No soft inner shadows. No embossed surfaces.
+- Illustration on any screen. No SVG drawings of factories, workers, robots, gears, shields, checkmarks with sparkles.
+- Lottie animation or any animated illustration.
+- Abstract icons. Every icon must represent a real physical object. A caliper. A ruler. A stamp. A camera. Not: a hexagon with lines, a brain, a chip, a network node, a floating circle with a checkmark.
+- Gradient text. Including yellow-to-orange on headings.
+- Decorative shapes in the background. No blobs, no circles, no diagonal stripes behind content.
+- Rounded cards floating on a lighter background with drop shadows.
+- Any hero section with large illustration + headline + subheadline + two buttons.
+- Onboarding screens with a full-page illustration taking 60% of the screen.
+- Empty state screens with a large centered illustration and a friendly caption.
+- A mascot of any kind.
+- Confetti, particle effects, fireworks on success.
+- Shimmer loading skeletons styled like content placeholders with gradient animation.
+
+**BANNED — copy and language:**
+- "Empower your quality journey"
+- "Smart insights at your fingertips"
+- "AI-powered excellence"
+- Any tagline that sounds like a startup pitch.
+- Any screen heading that ends in an exclamation mark.
+- "Welcome back, Sunil!" as a greeting header.
+
+**BANNED — layout patterns:**
+- A centered logo + tagline as the main screen.
+- Metric cards with a large number, a small label, and a subtle upward arrow — arranged in a 2x2 grid with rounded corners and drop shadows.
+- A sidebar navigation on mobile.
+- Tabs styled as pill-shaped toggle buttons with a sliding background indicator.
+- A bottom sheet that has a drag handle + illustration + headline + two buttons.
+- Step indicators styled as numbered circles with thick colored borders and animated transitions.
+
+---
+
+## PART 3 — WHAT IT MUST LOOK LIKE INSTEAD
+
+Describe every screen using only these building blocks. Nothing else exists.
+
+**The only allowed background colors:**
+- #0f0f0f (near black — primary background)
+- #1a1a1a (dark surface — cards, panels)
+- #252525 (elevated surface — modals, bottom sheets)
+- #F5C518 (Safety Yellow — primary action only)
+- #22C55E (Pass green — status only)
+- #EF4444 (Fail red — status only)
+- #F59E0B (Warning amber — status only)
+
+**The only allowed text colors:**
+- #FFFFFF (primary text — headings, values)
+- #A1A1A0 (secondary text — labels, metadata)
+- #6B6B6B (muted text — timestamps, helper text)
+- #F5C518 (yellow — active states, CTAs only)
+- #22C55E / #EF4444 / #F59E0B (status text only)
+
+**The only allowed UI components:**
+
+*Rows (use for everything list-related):*
+Height: 56dp fixed. Left: 40x40dp icon or thumbnail, no border-radius OR 4dp max radius. Center: primary label 15sp medium + secondary label 12sp gray. Right: value or status badge. Separated by 0.5px border #2a2a2a. No shadow. No card wrapper.
+
+*Status badges (the only allowed decorative element):*
+Pill shape. Filled background (not outlined). Green/Red/Amber. White text 11sp uppercase. Padding 4dp vertical 10dp horizontal. No border. No shadow. Used only for Pass/Fail/Warning.
+
+*Buttons (primary):*
+Full width. 60dp height. Background #F5C518. Text #000000 Rajdhani Bold 18sp uppercase. Border-radius 6dp only. No shadow. No gradient. No icon unless absolutely necessary.
+
+*Buttons (secondary):*
+Full width. 60dp height. Background transparent. Border 1px #F5C518. Text #F5C518 Rajdhani Medium 16sp. No shadow.
+
+*Bottom navigation:*
+Background #1a1a1a. 4 tabs maximum. Icon 24dp + label 10sp below. Active tab: icon and label in #F5C518. Inactive: #6B6B6B. No pill background behind active tab. No animation. Top border 0.5px #2a2a2a.
+
+*Top bar:*
+Background same as screen (#0f0f0f). Left: back arrow or hamburger 24dp. Center: screen title in Rajdhani 600 18sp white. Right: icon action if needed. No drop shadow. No border. Height 56dp.
+
+*Dividers:*
+0.5px solid #2a2a2a. Full width. Used between list rows and between sections. Nothing else.
+
+*Section headers (within a screen):*
+12sp uppercase, letter-spacing 1.2px, color #6B6B6B. Left-aligned. Padding 16dp left, 8dp top, 4dp bottom. No background. No border.
+
+---
+
+## PART 4 — SCREEN-BY-SCREEN LAYOUT INSTRUCTIONS
+
+Write these out exactly as ASCII wireframes or plain text layout descriptions. No visual embellishment.
+
+**Screen 1 — Camera / Scan Screen**
+```
+[STATUS BAR — dark]
+[TOP BAR: "INSPECT" title center | Settings icon right]
+─────────────────────────────────────────────
+[CAMERA VIEWFINDER — full bleed, 65% screen height]
+[Overlay: white bracket reticle, 4 corners only, no fill, no glow]
+[Overlay top-left: "BATCH 0042" 12sp gray]
+[Overlay top-right: "14 / 50 PARTS" 12sp gray]
+─────────────────────────────────────────────
+[BOTTOM PANEL — #1a1a1a, 35% screen height]
+[Row: sync icon + "OFFLINE — 23 LOGS PENDING" 13sp amber | right: Wi-Fi icon]
+[Divider]
+[SCAN PART button — full width yellow 60dp]
+[12dp gap]
+[Row: mic icon left | "या बोलें: 'स्कैन करो'" 13sp gray center]
+```
+
+**Screen 2 — Result Screen**
+```
+[Full screen flash: green or red, 400ms, then fades]
+─────────────────────────────────────────────
+[TOP BAR: "RESULT" | Close X right]
+─────────────────────────────────────────────
+[RESULT BLOCK — centered, top 40% of screen]
+  [PASS / FAIL — 52sp Rajdhani Bold, white]
+  [Defect type or "No defects found" — 16sp gray]
+  [Part thumbnail — 80x80dp square 4dp radius, right-floated]
+─────────────────────────────────────────────
+[DETAIL SECTION — receipt style]
+  [Row: "Part ID"        |  "BV-2024-00142"]
+  [Row: "Batch"          |  "0042"]
+  [Row: "Check time"     |  "2.3 sec"]
+  [Row: "Defects found"  |  "0" or "2 (surface)"]
+  [Row: "BIS Status"     |  COMPLIANT badge green]
+─────────────────────────────────────────────
+[LOG & NEXT button — full width yellow 60dp]
+[REPORT DEFECT — secondary outlined button]
+```
+
+**Screen 3 — Batch History**
+```
+[TOP BAR: "HISTORY"]
+[FILTER ROW: "All" | "Pass" | "Fail" | "Pending" — text tabs, active=yellow underline only]
+─────────────────────────────────────────────
+[LIST — flat, no cards]
+  [Row: part thumb 40dp | "Brass Valve BV-07" 15sp + "Today 14:32 · Batch 0042" 12sp gray | PASS badge green]
+  [0.5px divider]
+  [Row: part thumb 40dp | "Hex Nut HN-03" 15sp + "Today 13:11 · Batch 0041" 12sp gray | FAIL badge red]
+  [0.5px divider]
+  [Row: part thumb 40dp | "Pipe Elbow PE-11" 15sp + "Today 11:55 · Batch 0040" 12sp gray | PASS badge green]
+  [continues...]
+─────────────────────────────────────────────
+[BOTTOM NAV]
+```
+
+**Screen 4 — Five-Shot Training**
+```
+[TOP BAR: "TEACH NEW PART"]
+─────────────────────────────────────────────
+[STEP COUNTER — plain text, left aligned]
+  ["Step 2 of 5" — 13sp gray]
+  [Progress bar — thin 2dp line, yellow fill, #2a2a2a track, full width]
+─────────────────────────────────────────────
+[INSTRUCTION — single line, 18sp white]
+  ["अब दूसरा perfect part रखें"]
+─────────────────────────────────────────────
+[PHOTO GRID — 5 cells, 3 filled + 2 empty]
+  [Each cell: 72x72dp | filled=part thumbnail | empty=#252525 + dashed border #3a3a3a + "+" center]
+─────────────────────────────────────────────
+[CAMERA VIEWFINDER — remaining height]
+[CAPTURE button — full width yellow 60dp]
+```
+
+---
+
+## PART 5 — FINAL SANITY CHECK BEFORE OUTPUT
+
+Before you output anything, answer these questions internally:
+
+1. Is there a gradient anywhere? → Remove it.
+2. Is there an illustration, SVG drawing, or Lottie animation anywhere? → Remove it.
+3. Do the cards have drop shadows and rounded corners floating on a lighter background? → Remove the shadow, flatten the card.
+4. Does any screen have a hero section with a tagline? → Remove it.
+5. Does any icon represent an abstract concept (AI, intelligence, network, data)? → Replace with a physical real-world object icon.
+6. Would a Swiggy engineer look at this and say "yaar, ye toh AI ne banaya hai"? → Start over.
+7. Is the information density comparable to PhonePe's transaction history? → If it feels sparse, add more data rows.
+8. Are all primary actions reachable by the right thumb without moving the hand? → If not, restructure.
+
+Only output after passing all 8 checks.
+
+---
+
+That prompt, pasted verbatim before your Maanak Vision brief, will force any LLM to stay inside the visual grammar of real Indian product design instead of defaulting to its trained aesthetic of AI-themed SaaS dashboards.

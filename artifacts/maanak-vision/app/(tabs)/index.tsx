@@ -14,118 +14,131 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import InspectionCard from "@/components/InspectionCard";
+import { F } from "@/constants/fonts";
 import { useInspection } from "@/context/InspectionContext";
 import { useTraining } from "@/context/TrainingContext";
-import { useColors } from "@/hooks/useColors";
+import type { InspectionResult } from "@/context/InspectionContext";
+
+type Filter = "all" | InspectionResult;
 
 export default function InspectScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { inspections, currentBatch, startBatch, closeBatch } = useInspection();
   const { activeProduct, products } = useTraining();
-  const [showBatchSheet, setShowBatchSheet] = useState(false);
-  const [batchName, setBatchName] = useState(activeProduct?.name ?? "");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [showSheet, setShowSheet] = useState(false);
+  const [batchName, setBatchName] = useState("");
 
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const passed = inspections.filter((i) => i.result === "pass").length;
-  const failed = inspections.filter((i) => i.result === "fail").length;
-  const total = inspections.length;
+  const filtered =
+    filter === "all" ? inspections : inspections.filter((i) => i.result === filter);
+
+  const passCount = inspections.filter((i) => i.result === "pass").length;
+  const failCount = inspections.filter((i) => i.result === "fail").length;
 
   const handleScan = () => {
     if (!currentBatch) {
       setBatchName(activeProduct?.name ?? "");
-      setShowBatchSheet(true);
-      return;
+      setShowSheet(true);
+    } else {
+      router.push("/scan");
     }
-    router.push("/scan");
   };
 
-  const handleStartBatch = () => {
+  const handleStart = () => {
     if (!batchName.trim()) return;
     startBatch(batchName.trim());
-    setShowBatchSheet(false);
+    setShowSheet(false);
     router.push("/scan");
   };
 
+  const FILTERS: { key: Filter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "pass", label: "Pass" },
+    { key: "fail", label: "Fail" },
+    { key: "warning", label: "Warn" },
+  ];
+
   return (
-    <View style={[styles.root, { backgroundColor: "#000" }]}>
-      {/* Top header */}
-      <View style={[styles.topBar, { paddingTop: topPad + 8, borderBottomColor: "#1E1E1E" }]}>
+    <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
+      {/* Top bar */}
+      <View style={[S.topBar, { paddingTop: topPad + 6 }]}>
         <View>
-          <Text style={styles.appName}>MAANAK VISION</Text>
-          <Text style={styles.appSub}>BIS 2026 Quality Control</Text>
+          <Text style={S.appName}>MAANAK VISION</Text>
+          <Text style={S.appSub}>BIS 2026 Quality Control</Text>
         </View>
-        {total > 0 && (
-          <View style={styles.summaryChips}>
-            <View style={[styles.chip, { backgroundColor: "#0D2E18" }]}>
-              <Text style={[styles.chipNum, { color: "#22C55E" }]}>{passed}</Text>
-              <Text style={[styles.chipLabel, { color: "#22C55E" }]}>PASS</Text>
-            </View>
-            <View style={[styles.chip, { backgroundColor: "#2E0D0D" }]}>
-              <Text style={[styles.chipNum, { color: "#EF4444" }]}>{failed}</Text>
-              <Text style={[styles.chipLabel, { color: "#EF4444" }]}>FAIL</Text>
-            </View>
+        {inspections.length > 0 && (
+          <View style={S.topStats}>
+            <Text style={[S.topStatNum, { color: "#22C55E" }]}>{passCount}</Text>
+            <Text style={S.topStatSlash}>/</Text>
+            <Text style={[S.topStatNum, { color: "#EF4444" }]}>{failCount}</Text>
+            <Text style={S.topStatLabel}>P/F</Text>
           </View>
         )}
       </View>
 
       {/* Active batch strip */}
       {currentBatch && (
-        <View style={[styles.batchStrip, { borderBottomColor: "#1E1E1E" }]}>
-          <View style={[styles.liveIndicator, { backgroundColor: colors.primary }]} />
-          <View style={styles.batchStripCenter}>
-            <Text style={styles.batchStripName} numberOfLines={1}>
-              {currentBatch.productName}
-            </Text>
-            <Text style={styles.batchStripMeta}>
-              {currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail
+        <View style={[S.batchStrip, { borderBottomColor: "#2a2a2a", borderTopColor: "#2a2a2a" }]}>
+          <View style={[S.liveBar, { backgroundColor: "#F5C518" }]} />
+          <View style={S.batchStripMid}>
+            <Text style={S.batchName} numberOfLines={1}>{currentBatch.productName}</Text>
+            <Text style={S.batchMeta}>
+              {currentBatch.totalParts} parts · {currentBatch.passed} pass · {currentBatch.failed} fail
             </Text>
           </View>
-          <Pressable
-            onPress={() => closeBatch(currentBatch.id)}
-            style={({ pressed }) => [styles.closeStripBtn, { opacity: pressed ? 0.6 : 1 }]}
-          >
-            <Text style={styles.closeStripText}>CLOSE</Text>
+          <Pressable onPress={() => closeBatch(currentBatch.id)} style={S.closeBtn}>
+            <Text style={S.closeBtnText}>CLOSE</Text>
           </Pressable>
         </View>
       )}
 
-      {/* Product active row */}
+      {/* Active product row */}
       {activeProduct && !currentBatch && (
-        <View style={[styles.productRow, { borderBottomColor: "#1E1E1E" }]}>
-          <Feather name="cpu" size={14} color="#555" />
-          <Text style={styles.productRowText} numberOfLines={1}>
-            {activeProduct.name}
-          </Text>
-          <Text style={styles.productRowMeta}>{activeProduct.shots.length} ref shots</Text>
+        <View style={[S.productRow, { borderBottomColor: "#2a2a2a" }]}>
+          <Feather name="cpu" size={13} color="#6B6B6B" />
+          <Text style={S.productRowText} numberOfLines={1}>{activeProduct.name}</Text>
+          <Text style={S.productRowMeta}>{activeProduct.shots.length} ref shots</Text>
         </View>
       )}
 
-      {/* Section label */}
-      <View style={[styles.sectionHeader, { borderBottomColor: "#1E1E1E" }]}>
-        <Text style={styles.sectionLabel}>RECENT INSPECTIONS</Text>
-        {total > 0 && (
-          <Text style={styles.sectionCount}>{total}</Text>
+      {/* Filter tabs — text only, yellow underline on active */}
+      <View style={[S.filterRow, { borderBottomColor: "#2a2a2a" }]}>
+        {FILTERS.map((f) => (
+          <Pressable
+            key={f.key}
+            onPress={() => setFilter(f.key)}
+            style={S.filterTab}
+          >
+            <Text style={[S.filterText, { color: filter === f.key ? "#F5C518" : "#6B6B6B" }]}>
+              {f.label}
+            </Text>
+            {filter === f.key && <View style={S.filterUnderline} />}
+          </Pressable>
+        ))}
+        {filtered.length > 0 && (
+          <Text style={S.filterCount}>{filtered.length}</Text>
         )}
       </View>
 
-      {/* Inspection list */}
-      {inspections.length === 0 ? (
-        <View style={styles.empty}>
-          <Feather name="search" size={32} color="#2A2A2A" />
-          <Text style={styles.emptyText}>No inspections yet</Text>
-          <Text style={styles.emptyHint}>Tap SCAN to start a batch</Text>
+      {/* Flat list — no cards */}
+      {filtered.length === 0 ? (
+        <View style={S.empty}>
+          <Feather name="search" size={28} color="#2a2a2a" />
+          <Text style={S.emptyText}>
+            {inspections.length === 0 ? "No inspections yet" : "Nothing matches filter"}
+          </Text>
         </View>
       ) : (
         <FlatList
-          data={inspections.slice(0, 40)}
+          data={filtered.slice(0, 60)}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <InspectionCard inspection={item} />}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: bottomPad + 90 }}
+          contentContainerStyle={{ paddingBottom: bottomPad + 80 }}
         />
       )}
 
@@ -133,65 +146,51 @@ export default function InspectScreen() {
       <Pressable
         onPress={handleScan}
         style={({ pressed }) => [
-          styles.fab,
-          {
-            bottom: bottomPad + (isWeb ? 84 : 66),
-            opacity: pressed ? 0.85 : 1,
-            transform: [{ scale: pressed ? 0.96 : 1 }],
-          },
+          S.fab,
+          { bottom: bottomPad + (isWeb ? 84 : 66), opacity: pressed ? 0.85 : 1 },
         ]}
       >
-        <Feather name="zap" size={20} color="#1C1C1E" />
-        <Text style={styles.fabText}>SCAN PART</Text>
+        <Feather name="zap" size={16} color="#000" />
+        <Text style={S.fabText}>SCAN PART</Text>
       </Pressable>
 
-      {/* Batch bottom sheet */}
-      <Modal visible={showBatchSheet} transparent animationType="slide" onRequestClose={() => setShowBatchSheet(false)}>
-        <Pressable style={styles.sheetOverlay} onPress={() => setShowBatchSheet(false)} />
-        <View style={[styles.sheet, { paddingBottom: bottomPad + 20 }]}>
-          <View style={styles.sheetHandle} />
-          <Text style={styles.sheetTitle}>START BATCH</Text>
-          <Text style={styles.sheetSub}>Name this inspection batch</Text>
-
+      {/* Start batch bottom sheet */}
+      <Modal visible={showSheet} transparent animationType="slide" onRequestClose={() => setShowSheet(false)}>
+        <Pressable style={S.overlay} onPress={() => setShowSheet(false)} />
+        <View style={[S.sheet, { paddingBottom: bottomPad + 16, backgroundColor: "#252525" }]}>
+          <View style={S.sheetHandle} />
+          <Text style={S.sheetTitle}>START BATCH</Text>
           <TextInput
-            style={styles.sheetInput}
-            placeholder="e.g. Brass Valve 3/4 inch"
-            placeholderTextColor="#444"
+            style={[S.sheetInput, { backgroundColor: "#1a1a1a", color: "#fff", borderColor: "#2a2a2a" }]}
+            placeholder="Product name"
+            placeholderTextColor="#6B6B6B"
             value={batchName}
             onChangeText={setBatchName}
             autoFocus
             returnKeyType="done"
-            onSubmitEditing={handleStartBatch}
+            onSubmitEditing={handleStart}
           />
-
           {products.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
               {products.map((p) => (
                 <Pressable
                   key={p.id}
                   onPress={() => setBatchName(p.name)}
-                  style={[
-                    styles.productChip,
-                    { backgroundColor: batchName === p.name ? colors.primary : "#1E1E1E" },
-                  ]}
+                  style={[S.quickChip, { backgroundColor: batchName === p.name ? "#F5C518" : "#1a1a1a" }]}
                 >
-                  <Text style={[styles.productChipText, { color: batchName === p.name ? "#1C1C1E" : "#999" }]}>
+                  <Text style={{ color: batchName === p.name ? "#000" : "#A1A1A0", fontSize: 13, fontFamily: F.medium }}>
                     {p.name}
                   </Text>
                 </Pressable>
               ))}
             </ScrollView>
           )}
-
           <Pressable
-            onPress={handleStartBatch}
+            onPress={handleStart}
             disabled={!batchName.trim()}
-            style={({ pressed }) => [
-              styles.sheetBtn,
-              { opacity: batchName.trim() ? (pressed ? 0.85 : 1) : 0.4 },
-            ]}
+            style={({ pressed }) => [S.sheetBtn, { opacity: batchName.trim() ? (pressed ? 0.85 : 1) : 0.4 }]}
           >
-            <Text style={styles.sheetBtnText}>START BATCH</Text>
+            <Text style={S.sheetBtnText}>START BATCH</Text>
           </Pressable>
         </View>
       </Modal>
@@ -199,228 +198,215 @@ export default function InspectScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const S = StyleSheet.create({
   root: { flex: 1 },
   topBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
   appName: {
     color: "#F5C518",
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: 20,
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 3,
   },
   appSub: {
-    color: "#444",
+    color: "#6B6B6B",
     fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.8,
+    fontFamily: "Rajdhani_400Regular",
+    letterSpacing: 0.6,
     marginTop: 1,
   },
-  summaryChips: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  chip: {
+  topStats: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    gap: 3,
   },
-  chipNum: {
-    fontSize: 16,
-    fontWeight: "900",
+  topStatNum: {
+    fontSize: 20,
+    fontFamily: "Rajdhani_700Bold",
   },
-  chipLabel: {
-    fontSize: 10,
-    fontWeight: "700",
+  topStatSlash: {
+    color: "#2a2a2a",
+    fontSize: 18,
+    fontFamily: "Rajdhani_400Regular",
+  },
+  topStatLabel: {
+    color: "#6B6B6B",
+    fontSize: 11,
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 1,
+    marginLeft: 2,
   },
   batchStrip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
+    height: 48,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    backgroundColor: "#0f0f0f",
     gap: 10,
   },
-  liveIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  batchStripCenter: { flex: 1 },
-  batchStripName: {
-    color: "#F0F0F0",
+  liveBar: { width: 3, height: "100%" },
+  batchStripMid: { flex: 1 },
+  batchName: {
+    color: "#fff",
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.3,
   },
-  batchStripMeta: {
-    color: "#555",
-    fontSize: 12,
-    fontWeight: "500",
-    marginTop: 1,
-  },
-  closeStripBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 4,
-    backgroundColor: "#1E1E1E",
-  },
-  closeStripText: {
-    color: "#666",
+  batchMeta: {
+    color: "#6B6B6B",
     fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.8,
+    fontFamily: "Rajdhani_400Regular",
+  },
+  closeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginRight: 12,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 4,
+  },
+  closeBtnText: {
+    color: "#6B6B6B",
+    fontSize: 11,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 1,
   },
   productRow: {
+    height: 40,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 10,
     gap: 8,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   productRowText: {
-    color: "#888",
+    color: "#6B6B6B",
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: "Rajdhani_400Regular",
     flex: 1,
   },
   productRowMeta: {
-    color: "#444",
+    color: "#2a2a2a",
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: "Rajdhani_400Regular",
   },
-  sectionHeader: {
+  filterRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
+    height: 38,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 20,
   },
-  sectionLabel: {
-    color: "#444",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
+  filterTab: {
+    alignItems: "center",
+    position: "relative",
+    paddingBottom: 2,
   },
-  sectionCount: {
-    color: "#444",
-    fontSize: 11,
-    fontWeight: "700",
+  filterText: {
+    fontSize: 13,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.8,
+  },
+  filterUnderline: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: "#F5C518",
+  },
+  filterCount: {
+    color: "#2a2a2a",
+    fontSize: 12,
+    fontFamily: "Rajdhani_400Regular",
+    marginLeft: "auto",
   },
   empty: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
   },
   emptyText: {
-    color: "#333",
-    fontSize: 16,
-    fontWeight: "700",
-    marginTop: 8,
-  },
-  emptyHint: {
-    color: "#2A2A2A",
-    fontSize: 13,
-    fontWeight: "500",
+    color: "#2a2a2a",
+    fontSize: 15,
+    fontFamily: "Rajdhani_500Medium",
   },
   fab: {
     position: "absolute",
-    right: 20,
+    right: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: "#F5C518",
-    paddingHorizontal: 22,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    height: 52,
     borderRadius: 6,
     elevation: 0,
     shadowOpacity: 0,
   },
   fabText: {
-    color: "#1C1C1E",
-    fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: 1.5,
+    color: "#000",
+    fontSize: 16,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 2,
   },
-  sheetOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-  },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
   sheet: {
-    backgroundColor: "#111",
-    borderTopWidth: 1,
-    borderTopColor: "#2A2A2A",
-    paddingHorizontal: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#2a2a2a",
+    paddingHorizontal: 16,
     paddingTop: 16,
   },
   sheetHandle: {
     width: 36,
     height: 3,
-    backgroundColor: "#333",
+    backgroundColor: "#2a2a2a",
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 20,
   },
   sheetTitle: {
-    color: "#F0F0F0",
+    color: "#fff",
     fontSize: 18,
-    fontWeight: "900",
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 2,
-    marginBottom: 4,
-  },
-  sheetSub: {
-    color: "#555",
-    fontSize: 13,
-    fontWeight: "500",
-    marginBottom: 20,
-  },
-  sheetInput: {
-    backgroundColor: "#1A1A1A",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#F0F0F0",
-    fontWeight: "600",
     marginBottom: 14,
   },
-  chipScroll: {
-    marginBottom: 20,
-  },
-  productChip: {
+  sheetInput: {
+    height: 52,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 4,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    fontSize: 16,
+    fontFamily: "Rajdhani_500Medium",
+    marginBottom: 14,
+  },
+  quickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 4,
     marginRight: 8,
   },
-  productChipText: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
   sheetBtn: {
+    height: 60,
     backgroundColor: "#F5C518",
-    paddingVertical: 18,
     borderRadius: 6,
     alignItems: "center",
+    justifyContent: "center",
   },
   sheetBtnText: {
-    color: "#1C1C1E",
-    fontSize: 15,
-    fontWeight: "900",
+    color: "#000",
+    fontSize: 18,
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 2,
   },
 });

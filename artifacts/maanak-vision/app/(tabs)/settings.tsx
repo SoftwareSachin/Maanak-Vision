@@ -1,487 +1,214 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useInspection } from "@/context/InspectionContext";
-import { useColors } from "@/hooks/useColors";
 
-const VOICE_LANGUAGES = ["Hindi", "Hinglish", "Marathi", "Gujarati", "Tamil", "Telugu"];
+const LANGS = ["Hinglish", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu"];
 
 export default function SettingsScreen() {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const { clearAll, inspections, batches } = useInspection();
-  const [voiceLang, setVoiceLang] = useState("Hinglish");
-  const [hapticsEnabled, setHapticsEnabled] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [autoFlash, setAutoFlash] = useState(true);
+  const [lang, setLang] = useState("Hinglish");
+  const [haptics, setHaptics] = useState(true);
+  const [sound, setSound] = useState(true);
+  const [flash, setFlash] = useState(true);
 
   const isWeb = Platform.OS === "web";
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const handleClearData = () => {
-    Alert.alert(
-      "Clear All Data",
-      `This will permanently delete ${inspections.length} inspections and ${batches.length} batches. This action cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete All",
-          style: "destructive",
-          onPress: clearAll,
-        },
-      ]
-    );
-  };
-
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: topPad + 12, borderBottomColor: colors.border },
-        ]}
-      >
-        <Text style={[styles.pageTitle, { color: colors.primary }]}>SETTINGS</Text>
-        <Text style={[styles.pageSub, { color: colors.mutedForeground }]}>
-          App Configuration
-        </Text>
+    <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
+      <View style={[S.topBar, { paddingTop: topPad + 6, borderBottomColor: "#2a2a2a" }]}>
+        <Text style={S.title}>SETTINGS</Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: bottomPad + 40,
-          gap: 24,
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        <Section title="VOICE LANGUAGE" colors={colors}>
-          <Text style={[styles.sectionDesc, { color: colors.mutedForeground }]}>
-            Select language for voice command recognition
-          </Text>
-          <View style={styles.langGrid}>
-            {VOICE_LANGUAGES.map((lang) => (
-              <Pressable
-                key={lang}
-                onPress={() => setVoiceLang(lang)}
-                style={({ pressed }) => [
-                  styles.langChip,
-                  {
-                    backgroundColor:
-                      voiceLang === lang ? colors.primary : colors.card,
-                    borderColor:
-                      voiceLang === lang ? colors.primary : colors.border,
-                    opacity: pressed ? 0.7 : 1,
-                  },
-                ]}
-              >
-                <Feather
-                  name="mic"
-                  size={12}
-                  color={
-                    voiceLang === lang
-                      ? colors.primaryForeground
-                      : colors.mutedForeground
-                  }
-                />
-                <Text
-                  style={[
-                    styles.langChipText,
-                    {
-                      color:
-                        voiceLang === lang
-                          ? colors.primaryForeground
-                          : colors.foreground,
-                    },
-                  ]}
-                >
-                  {lang}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <View
-            style={[styles.voiceCmds, { backgroundColor: colors.card, borderColor: colors.border }]}
-          >
-            <Text style={[styles.voiceCmdsTitle, { color: colors.mutedForeground }]}>
-              VOICE COMMANDS
-            </Text>
-            {[
-              ["Scan karo", "Start scanning"],
-              ["Check karo", "Inspect current part"],
-              ["Batch band karo", "Close current batch"],
-              ["Report dikho", "Open vault"],
-            ].map(([cmd, desc]) => (
-              <View key={cmd} style={styles.voiceCmd}>
-                <Text style={[styles.voiceCmdPhrase, { color: colors.primary }]}>
-                  "{cmd}"
-                </Text>
-                <Text style={[styles.voiceCmdDesc, { color: colors.mutedForeground }]}>
-                  {desc}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </Section>
+      <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 20 }} showsVerticalScrollIndicator={false}>
 
-        <Section title="FEEDBACK" colors={colors}>
-          <ToggleRow
-            icon="smartphone"
-            label="Haptic Feedback"
-            desc="Vibration on scan results"
-            value={hapticsEnabled}
-            onChange={setHapticsEnabled}
-            colors={colors}
-          />
-          <ToggleRow
-            icon="volume-2"
-            label="Sound Alerts"
-            desc="Audible chime on pass/fail"
-            value={soundEnabled}
-            onChange={setSoundEnabled}
-            colors={colors}
-          />
-          <ToggleRow
-            icon="zap"
-            label="Screen Flash"
-            desc="Full-screen green/red flash on result"
-            value={autoFlash}
-            onChange={setAutoFlash}
-            colors={colors}
-          />
-        </Section>
+        {/* Voice language */}
+        <SectionHead label="VOICE LANGUAGE" />
+        <View style={[S.langGrid, { borderBottomColor: "#2a2a2a" }]}>
+          {LANGS.map((l) => (
+            <Pressable
+              key={l}
+              onPress={() => setLang(l)}
+              style={[S.langBtn, { backgroundColor: lang === l ? "#F5C518" : "#1a1a1a", borderColor: lang === l ? "#F5C518" : "#2a2a2a" }]}
+            >
+              <Text style={[S.langBtnText, { color: lang === l ? "#000" : "#6B6B6B" }]}>{l}</Text>
+            </Pressable>
+          ))}
+        </View>
 
-        <Section title="HAPTIC PATTERNS" colors={colors}>
-          <View style={[styles.hapticTable, { borderColor: colors.border }]}>
-            {[
-              ["·", "1 short pulse", "Scan ready"],
-              ["···", "3 rapid pulses", "Defect detected"],
-              ["——", "1 long pulse", "Batch complete"],
-            ].map(([sym, pat, meaning]) => (
-              <View
-                key={pat}
-                style={[styles.hapticRow, { borderBottomColor: colors.border }]}
-              >
-                <Text style={[styles.hapticSym, { color: colors.primary }]}>
-                  {sym}
-                </Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.hapticPat, { color: colors.foreground }]}>
-                    {pat}
-                  </Text>
-                  <Text style={[styles.hapticMeaning, { color: colors.mutedForeground }]}>
-                    {meaning}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </Section>
+        {/* Voice commands */}
+        <SectionHead label="VOICE COMMANDS" />
+        {[
+          ["mic", "\"Scan karo\"", "Start scan"],
+          ["mic", "\"Check karo\"", "Inspect part"],
+          ["mic", "\"Batch band karo\"", "Close batch"],
+          ["mic", "\"Report dikho\"", "Open vault"],
+        ].map(([icon, phrase, desc], i) => (
+          <Row key={i} icon={icon as any} left={phrase} right={desc} leftColor="#F5C518" />
+        ))}
 
-        <Section title="DATA MANAGEMENT" colors={colors}>
-          <View style={[styles.dataRow, { borderColor: colors.border }]}>
-            <View style={styles.dataLeft}>
-              <Feather name="database" size={16} color={colors.mutedForeground} />
-              <View>
-                <Text style={[styles.dataLabel, { color: colors.foreground }]}>
-                  Inspection Records
-                </Text>
-                <Text style={[styles.dataMeta, { color: colors.mutedForeground }]}>
-                  {inspections.length} inspections · {batches.length} batches
-                </Text>
-              </View>
+        {/* Haptic patterns */}
+        <SectionHead label="HAPTIC PATTERNS" />
+        {[
+          ["·", "1 short pulse", "Scan ready"],
+          ["···", "3 rapid pulses", "Defect detected"],
+          ["——", "1 long pulse", "Batch complete"],
+        ].map(([sym, pat, meaning]) => (
+          <View key={pat} style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
+            <Text style={S.hapticSym}>{sym}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={S.rowPrimary}>{pat}</Text>
+              <Text style={S.rowSecondary}>{meaning}</Text>
             </View>
           </View>
-          <Pressable
-            onPress={handleClearData}
-            style={({ pressed }) => [
-              styles.clearBtn,
-              {
-                borderColor: colors.destructive,
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <Feather name="trash-2" size={16} color={colors.destructive} />
-            <Text style={[styles.clearBtnText, { color: colors.destructive }]}>
-              CLEAR ALL DATA
-            </Text>
-          </Pressable>
-        </Section>
+        ))}
 
-        <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.aboutRow}>
-            <Text style={[styles.aboutLabel, { color: colors.mutedForeground }]}>APP</Text>
-            <Text style={[styles.aboutValue, { color: colors.primary }]}>MAANAK VISION</Text>
-          </View>
-          <View style={styles.aboutRow}>
-            <Text style={[styles.aboutLabel, { color: colors.mutedForeground }]}>VERSION</Text>
-            <Text style={[styles.aboutValue, { color: colors.foreground }]}>1.0.0</Text>
-          </View>
-          <View style={styles.aboutRow}>
-            <Text style={[styles.aboutLabel, { color: colors.mutedForeground }]}>STANDARD</Text>
-            <Text style={[styles.aboutValue, { color: colors.foreground }]}>BIS 2026</Text>
-          </View>
-          <View style={[styles.aboutRow, { borderBottomWidth: 0 }]}>
-            <Text style={[styles.aboutLabel, { color: colors.mutedForeground }]}>MADE FOR</Text>
-            <Text style={[styles.aboutValue, { color: colors.foreground }]}>Indian MSME</Text>
+        {/* Feedback toggles */}
+        <SectionHead label="FEEDBACK" />
+        <ToggleRow icon="smartphone" label="Haptic Feedback" desc="Vibration on scan result" value={haptics} onChange={setHaptics} />
+        <ToggleRow icon="volume-2" label="Sound Alerts" desc="Audible chime on pass/fail" value={sound} onChange={setSound} />
+        <ToggleRow icon="zap" label="Screen Flash" desc="Full-screen green/red on result" value={flash} onChange={setFlash} />
+
+        {/* Data */}
+        <SectionHead label="DATA" />
+        <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
+          <Feather name="database" size={16} color="#6B6B6B" />
+          <View style={{ flex: 1, marginLeft: 14 }}>
+            <Text style={S.rowPrimary}>Stored inspections</Text>
+            <Text style={S.rowSecondary}>{inspections.length} records · {batches.length} batches</Text>
           </View>
         </View>
+        <Pressable
+          onPress={() => Alert.alert("Clear All", `Delete ${inspections.length} inspections and ${batches.length} batches?`, [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete All", style: "destructive", onPress: clearAll },
+          ])}
+          style={({ pressed }) => [S.row, { borderBottomColor: "#2a2a2a", opacity: pressed ? 0.7 : 1 }]}
+        >
+          <Feather name="trash-2" size={16} color="#EF4444" />
+          <Text style={[S.rowPrimary, { marginLeft: 14, color: "#EF4444" }]}>Clear all data</Text>
+        </Pressable>
+
+        {/* About */}
+        <SectionHead label="ABOUT" />
+        {[
+          ["App", "MAANAK VISION"],
+          ["Version", "1.0.0"],
+          ["Standard", "BIS 2026"],
+          ["Target", "Indian MSME"],
+        ].map(([label, val]) => (
+          <View key={label} style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
+            <Text style={S.rowSecondary}>{label}</Text>
+            <Text style={[S.rowPrimary, { marginLeft: "auto" }]}>{val}</Text>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
 }
 
-function Section({
-  title,
-  children,
-  colors,
-}: {
-  title: string;
-  children: React.ReactNode;
-  colors: ReturnType<typeof useColors>;
-}) {
+function SectionHead({ label }: { label: string }) {
   return (
-    <View>
-      <Text style={[styles.secTitle, { color: colors.mutedForeground }]}>{title}</Text>
-      {children}
+    <View style={S.sectionHead}>
+      <Text style={S.sectionLabel}>{label}</Text>
     </View>
   );
 }
 
-function ToggleRow({
-  icon,
-  label,
-  desc,
-  value,
-  onChange,
-  colors,
-}: {
-  icon: string;
-  label: string;
-  desc: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-  colors: ReturnType<typeof useColors>;
+function Row({ icon, left, right, leftColor }: { icon: any; left: string; right: string; leftColor?: string }) {
+  return (
+    <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
+      <Feather name={icon} size={14} color="#6B6B6B" />
+      <Text style={[S.rowPrimary, { marginLeft: 14, color: leftColor ?? "#FFFFFF", flex: 1 }]}>{left}</Text>
+      <Text style={S.rowSecondary}>{right}</Text>
+    </View>
+  );
+}
+
+function ToggleRow({ icon, label, desc, value, onChange }: {
+  icon: any; label: string; desc: string; value: boolean; onChange: (v: boolean) => void;
 }) {
   return (
-    <View
-      style={[styles.toggleRow, { backgroundColor: colors.card, borderColor: colors.border }]}
-    >
-      <View style={styles.toggleLeft}>
-        <Feather name={icon as any} size={18} color={colors.mutedForeground} />
-        <View>
-          <Text style={[styles.toggleLabel, { color: colors.foreground }]}>{label}</Text>
-          <Text style={[styles.toggleDesc, { color: colors.mutedForeground }]}>{desc}</Text>
-        </View>
+    <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
+      <Feather name={icon} size={16} color="#6B6B6B" />
+      <View style={{ flex: 1, marginLeft: 14 }}>
+        <Text style={S.rowPrimary}>{label}</Text>
+        <Text style={S.rowSecondary}>{desc}</Text>
       </View>
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: colors.border, true: colors.primary }}
+        trackColor={{ false: "#2a2a2a", true: "#F5C518" }}
         thumbColor="#fff"
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
+const S = StyleSheet.create({
+  root: { flex: 1 },
+  topBar: {
     paddingHorizontal: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  pageTitle: {
-    fontSize: 20,
-    fontWeight: "900",
+  title: { color: "#F5C518", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  sectionHead: {
+    paddingLeft: 16,
+    paddingTop: 20,
+    paddingBottom: 6,
+  },
+  sectionLabel: {
+    color: "#6B6B6B",
+    fontSize: 11,
+    fontFamily: "Rajdhani_700Bold",
     letterSpacing: 2,
-  },
-  pageSub: {
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  secTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 2,
-    marginBottom: 10,
-  },
-  sectionDesc: {
-    fontSize: 13,
-    marginBottom: 12,
-    lineHeight: 20,
   },
   langGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
     gap: 8,
-    marginBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  langChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
+  langBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingVertical: 8,
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  langChipText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  voiceCmds: {
-    borderRadius: 8,
-    padding: 14,
-    borderWidth: 1,
-    gap: 10,
-  },
-  voiceCmdsTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  voiceCmd: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  voiceCmdPhrase: {
-    fontSize: 14,
-    fontWeight: "700",
-    width: 130,
-  },
-  voiceCmdDesc: {
+  langBtnText: {
     fontSize: 13,
-    fontWeight: "500",
-    flex: 1,
+    fontFamily: "Rajdhani_600SemiBold",
   },
-  toggleRow: {
+  row: {
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  toggleLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    flex: 1,
-  },
-  toggleLabel: {
+  rowPrimary: {
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: "Rajdhani_500Medium",
   },
-  toggleDesc: {
+  rowSecondary: {
+    color: "#6B6B6B",
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: "Rajdhani_400Regular",
     marginTop: 1,
-  },
-  hapticTable: {
-    borderRadius: 8,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  hapticRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    gap: 12,
-    borderBottomWidth: 1,
   },
   hapticSym: {
-    fontSize: 18,
-    fontWeight: "900",
-    width: 36,
-    textAlign: "center",
+    color: "#F5C518",
+    fontSize: 16,
+    fontFamily: "Rajdhani_700Bold",
+    width: 40,
     letterSpacing: 2,
-  },
-  hapticPat: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  hapticMeaning: {
-    fontSize: 12,
-    fontWeight: "500",
-    marginTop: 1,
-  },
-  dataRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  dataLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  dataLabel: {
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  dataMeta: {
-    fontSize: 12,
-    fontWeight: "500",
-    marginTop: 1,
-  },
-  clearBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  clearBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 1.5,
-  },
-  aboutCard: {
-    borderRadius: 8,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  aboutRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.07)",
-  },
-  aboutLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 1.5,
-  },
-  aboutValue: {
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0.3,
   },
 });

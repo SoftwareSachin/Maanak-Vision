@@ -1,42 +1,50 @@
 const colors = {
   light: {
-    text: "#F0F0F0",
+    // Only allowed backgrounds
+    background: "#0f0f0f",
+    surface: "#1a1a1a",
+    elevated: "#252525",
+
+    // Aliases for hook compatibility
+    text: "#FFFFFF",
     tint: "#F5C518",
-
-    background: "#1C1C1E",
-    foreground: "#F0F0F0",
-
-    card: "#2C2C2E",
-    cardForeground: "#F0F0F0",
-
-    primary: "#F5C518",
-    primaryForeground: "#1C1C1E",
-
-    secondary: "#3A3A3C",
-    secondaryForeground: "#F0F0F0",
-
-    muted: "#3A3A3C",
-    mutedForeground: "#8E8E93",
-
+    card: "#1a1a1a",
+    cardForeground: "#FFFFFF",
+    foreground: "#FFFFFF",
+    secondary: "#1a1a1a",
+    secondaryForeground: "#FFFFFF",
+    muted: "#1a1a1a",
+    mutedForeground: "#6B6B6B",
     accent: "#F5C518",
-    accentForeground: "#1C1C1E",
-
-    destructive: "#FF3B30",
+    accentForeground: "#000000",
+    destructive: "#EF4444",
     destructiveForeground: "#FFFFFF",
+    border: "#2a2a2a",
+    input: "#1a1a1a",
 
-    border: "#3A3A3C",
-    input: "#2C2C2E",
+    // Primary action — Safety Yellow only
+    primary: "#F5C518",
+    primaryForeground: "#000000",
 
-    pass: "#30D158",
-    fail: "#FF3B30",
-    warning: "#FF9F0A",
+    // Status — functional, never decorative
+    pass: "#22C55E",
+    fail: "#EF4444",
+    warning: "#F59E0B",
 
+    // Status backgrounds
     passBackground: "#0D2E18",
     failBackground: "#2E0D0D",
     warningBackground: "#2E1A00",
-  },
 
-  radius: 8,
+    // Text hierarchy
+    textPrimary: "#FFFFFF",
+    textSecondary: "#A1A1A0",
+    textMuted: "#6B6B6B",
+
+    // Divider
+    divider: "#2a2a2a",
+  },
+  radius: 6,
 };
 
 export default colors;

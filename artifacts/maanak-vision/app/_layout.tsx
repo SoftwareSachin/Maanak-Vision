@@ -1,10 +1,10 @@
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from "@expo-google-fonts/inter";
+  Rajdhani_400Regular,
+  Rajdhani_500Medium,
+  Rajdhani_600SemiBold,
+  Rajdhani_700Bold,
+  useFonts as useRajdhaniFonts,
+} from "@expo-google-fonts/rajdhani";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -25,24 +25,18 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="scan"
-        options={{ headerShown: false, presentation: "fullScreenModal" }}
-      />
-      <Stack.Screen
-        name="result"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
+      <Stack.Screen name="scan" options={{ headerShown: false, presentation: "fullScreenModal" }} />
+      <Stack.Screen name="result" options={{ headerShown: false, presentation: "fullScreenModal" }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+  const [fontsLoaded, fontError] = useRajdhaniFonts({
+    Rajdhani_400Regular,
+    Rajdhani_500Medium,
+    Rajdhani_600SemiBold,
+    Rajdhani_700Bold,
   });
 
   useEffect(() => {
