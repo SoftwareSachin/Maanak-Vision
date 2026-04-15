@@ -13,15 +13,16 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import C from "@/constants/colors";
 import { useInspection } from "@/context/InspectionContext";
 import { useTraining } from "@/context/TrainingContext";
 import type { DefectDetail, InspectionResult } from "@/context/InspectionContext";
 
 const DEFECTS: DefectDetail[] = [
-  { type: "crack", severity: "high", description: "Surface crack on thread section" },
-  { type: "scratch", severity: "medium", description: "Linear scratch on shank — 12mm" },
-  { type: "colour_mismatch", severity: "low", description: "Surface oxidation — check annealing" },
-  { type: "dimensional", severity: "high", description: "Thread pitch outside ±0.05mm tolerance" },
+  { type: "crack",           severity: "high",   description: "Surface crack on thread section" },
+  { type: "scratch",         severity: "medium", description: "Linear scratch on shank — 12mm" },
+  { type: "colour_mismatch", severity: "low",    description: "Surface oxidation — check annealing" },
+  { type: "dimensional",     severity: "high",   description: "Thread pitch outside ±0.05mm tolerance" },
 ];
 
 function runQC(): { result: InspectionResult; defects: DefectDetail[] } {
@@ -44,24 +45,27 @@ export default function ScanScreen() {
   const [flashColor, setFlashColor] = useState("transparent");
   const reticleRef = useRef(new Animated.Value(1)).current;
   const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const bottomPad = isWeb ? 34 : insets.bottom;
+  const topPad = isWeb ? 56 : insets.top;
+  const bottomPad = isWeb ? 32 : insets.bottom;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(reticleRef, { toValue: 0.45, duration: 1200, useNativeDriver: true }),
-        Animated.timing(reticleRef, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(reticleRef, { toValue: 0.5, duration: 1400, useNativeDriver: true }),
+        Animated.timing(reticleRef, { toValue: 1,   duration: 1400, useNativeDriver: true }),
       ])
     ).start();
   }, []);
 
   const doFlash = useCallback((result: InspectionResult) => {
-    const c = result === "pass" ? "rgba(34,197,94,0.38)" : result === "fail" ? "rgba(239,68,68,0.38)" : "rgba(245,158,11,0.28)";
+    const c =
+      result === "pass"    ? "rgba(109,214,114,0.30)" :
+      result === "fail"    ? "rgba(255,180,171,0.30)" :
+                             "rgba(255,184,108,0.25)";
     setFlashColor(c);
     Animated.sequence([
-      Animated.timing(flashRef, { toValue: 1, duration: 50, useNativeDriver: true }),
-      Animated.timing(flashRef, { toValue: 0, duration: 380, useNativeDriver: true }),
+      Animated.timing(flashRef, { toValue: 1, duration: 50,  useNativeDriver: true }),
+      Animated.timing(flashRef, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start(() => setFlashColor("transparent"));
   }, [flashRef]);
 
@@ -78,36 +82,48 @@ export default function ScanScreen() {
     }
     doFlash(result);
     const inspection = {
-      id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
+      id:          Date.now().toString() + Math.random().toString(36).substring(2, 9),
       productName: activeProduct?.name ?? currentBatch?.productName ?? "Unknown Part",
       result,
       defects,
-      timestamp: Date.now(),
-      batchId: activeBatchId ?? "no-batch",
+      timestamp:   Date.now(),
+      batchId:     activeBatchId ?? "no-batch",
       bisCompliant: result === "pass",
     };
     addInspection(inspection);
     setScanning(false);
     router.replace({
       pathname: "/result",
-      params: { result, productName: inspection.productName, defectType: defects[0]?.type ?? "none", defectDesc: defects[0]?.description ?? "" },
+      params: {
+        result,
+        productName: inspection.productName,
+        defectType:  defects[0]?.type ?? "none",
+        defectDesc:  defects[0]?.description ?? "",
+      },
     });
   }, [scanning, activeProduct, currentBatch, activeBatchId, addInspection, doFlash]);
 
-  if (!permission) return (
-    <View style={[S.fill, { backgroundColor: "#0f0f0f" }]}>
-      <ActivityIndicator color="#F5C518" />
-    </View>
-  );
+  if (!permission) {
+    return (
+      <View style={[S.permScreen, { backgroundColor: C.background }]}>
+        <ActivityIndicator color={C.primary} size="large" />
+      </View>
+    );
+  }
 
   if (!permission.granted) {
     return (
-      <View style={[S.fill, { backgroundColor: "#0f0f0f" }]}>
-        <MaterialCommunityIcons name="camera-off" size={36} color="#2a2a2a" />
-        <Text style={S.permText}>Camera access required</Text>
-        <Pressable onPress={requestPermission} style={S.permBtn}>
-          <Text style={S.permBtnText}>ALLOW CAMERA</Text>
-        </Pressable>
+      <View style={[S.permScreen, { backgroundColor: C.background }]}>
+        <View style={[S.permCard, { backgroundColor: C.surfaceContainerLow }]}>
+          <View style={[S.permIconBox, { backgroundColor: C.surfaceContainerHigh }]}>
+            <MaterialCommunityIcons name="camera-off" size={32} color={C.onSurfaceVariant} />
+          </View>
+          <Text style={S.permTitle}>Camera access required</Text>
+          <Text style={S.permBody}>Maanak Vision needs camera permission to inspect parts.</Text>
+          <Pressable onPress={requestPermission} style={S.permBtn}>
+            <Text style={S.permBtnText}>Allow Camera</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -115,144 +131,283 @@ export default function ScanScreen() {
   return (
     <View style={[S.root, { backgroundColor: "#000" }]}>
 
-      {/* CAMERA — 65% height */}
+      {/* Camera viewport — 65% */}
       <View style={S.cameraArea}>
         {isWeb ? (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#0a0a0a" }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#050508" }]} />
         ) : (
           <CameraView style={StyleSheet.absoluteFill} facing="back" />
         )}
 
+        {/* Result flash overlay */}
         <Animated.View
           pointerEvents="none"
           style={[StyleSheet.absoluteFill, { backgroundColor: flashColor, opacity: flashRef }]}
         />
 
-        {/* Top overlay: minimal text only */}
-        <View style={[S.camTop, { paddingTop: topPad + 4 }]}>
-          <Pressable onPress={() => router.back()} style={S.camBtn}>
-            <MaterialCommunityIcons name="close" size={18} color="rgba(255,255,255,0.6)" />
+        {/* Top HUD */}
+        <View style={[S.camHud, { paddingTop: topPad + 6 }]}>
+          <Pressable onPress={() => router.back()} style={S.hudBtn}>
+            <MaterialCommunityIcons name="close" size={20} color="rgba(255,255,255,0.8)" />
           </Pressable>
 
-          <View style={S.camTopCenter}>
+          <View style={S.hudCenter}>
             {currentBatch && (
-              <Text style={S.camBatchLabel} numberOfLines={1}>{currentBatch.productName}</Text>
+              <View style={S.batchPill}>
+                <View style={S.batchPillDot} />
+                <Text style={S.batchPillText} numberOfLines={1}>{currentBatch.productName}</Text>
+              </View>
             )}
           </View>
 
           <Pressable
             onPress={() => setVoiceActive((v) => !v)}
-            style={[S.camBtn, { backgroundColor: voiceActive ? "#F5C518" : "rgba(0,0,0,0.35)" }]}
+            style={[S.hudBtn, voiceActive && S.hudBtnActive]}
           >
             <MaterialCommunityIcons
               name={voiceActive ? "microphone" : "microphone-outline"}
-              size={17}
-              color={voiceActive ? "#000" : "rgba(255,255,255,0.6)"}
+              size={18}
+              color={voiceActive ? C.onPrimary : "rgba(255,255,255,0.8)"}
             />
           </Pressable>
         </View>
 
-        {/* Corner reticle — white, no fill, no glow */}
+        {/* Reticle corners */}
         <Animated.View style={[S.reticle, { opacity: reticleRef }]} pointerEvents="none">
-          <View style={[S.c, S.cTL]} />
-          <View style={[S.c, S.cTR]} />
-          <View style={[S.c, S.cBL]} />
-          <View style={[S.c, S.cBR]} />
+          <View style={[S.corner, S.cTL]} />
+          <View style={[S.corner, S.cTR]} />
+          <View style={[S.corner, S.cBL]} />
+          <View style={[S.corner, S.cBR]} />
         </Animated.View>
 
+        {/* Voice indicator */}
         {voiceActive && (
-          <View style={S.voiceBar}>
-            <MaterialCommunityIcons name="microphone" size={12} color="#F5C518" />
-            <Text style={S.voiceText}>या बोलें: "स्कैन करो"  ·  "रोको"</Text>
+          <View style={S.voicePill}>
+            <MaterialCommunityIcons name="microphone" size={12} color={C.primary} />
+            <Text style={S.voicePillText}>Say: "स्कैन करो" · "रोको"</Text>
           </View>
         )}
       </View>
 
-      {/* BOTTOM PANEL — 35%, #1a1a1a */}
-      <View style={[S.panel, { paddingBottom: bottomPad + 10 }]}>
+      {/* Control panel — 35% */}
+      <View style={[S.panel, { paddingBottom: bottomPad + 12 }]}>
+
+        {/* Live batch stats */}
         <View style={S.statsRow}>
-          <StatCol label="SCANNED" value={currentBatch?.totalParts ?? 0} color="#A1A1A0" />
+          <StatCell label="Scanned" value={currentBatch?.totalParts ?? 0} color={C.onSurfaceVariant} />
           <View style={S.statDiv} />
-          <StatCol label="PASS" value={currentBatch?.passed ?? 0} color="#22C55E" />
+          <StatCell label="Pass"    value={currentBatch?.passed  ?? 0} color={C.pass} />
           <View style={S.statDiv} />
-          <StatCol label="FAIL" value={currentBatch?.failed ?? 0} color="#EF4444" />
+          <StatCell label="Fail"    value={currentBatch?.failed  ?? 0} color={C.fail} />
           <View style={S.statDiv} />
-          <StatCol label="WARN" value={currentBatch?.warnings ?? 0} color="#F59E0B" />
+          <StatCell label="Caution" value={currentBatch?.warnings ?? 0} color={C.warn} />
         </View>
 
+        {/* Status line */}
         <View style={S.statusLine}>
-          <View style={[S.statusDot, { backgroundColor: scanning ? "#F59E0B" : "#22C55E" }]} />
+          <View style={[S.statusDot, {
+            backgroundColor: scanning ? C.warn : C.pass,
+          }]} />
           <Text style={S.statusText}>
-            {scanning ? "ANALYSING PART..." : "POSITION PART IN FRAME"}
+            {scanning ? "Analysing part…" : "Position part in frame"}
           </Text>
         </View>
 
+        {/* Scan button */}
         <Pressable
           onPress={handleScan}
           disabled={scanning}
-          style={({ pressed }) => [S.scanBtn, { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 }]}
+          style={({ pressed }) => [S.scanBtn, { opacity: scanning ? 0.5 : pressed ? 0.88 : 1 }]}
         >
-          {scanning
-            ? <ActivityIndicator color="#000" />
-            : <>
-                <MaterialCommunityIcons name="barcode-scan" size={20} color="#000" />
-                <Text style={S.scanBtnText}>SCAN PART</Text>
-              </>
-          }
+          {scanning ? (
+            <ActivityIndicator color={C.onPrimary} size="small" />
+          ) : (
+            <>
+              <MaterialCommunityIcons name="barcode-scan" size={20} color={C.onPrimary} />
+              <Text style={S.scanBtnText}>Scan Part</Text>
+            </>
+          )}
         </Pressable>
       </View>
     </View>
   );
 }
 
-function StatCol({ label, value, color }: { label: string; value: number; color: string }) {
+function StatCell({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <View style={{ flex: 1, alignItems: "center" }}>
+    <View style={{ flex: 1, alignItems: "center", paddingVertical: 6 }}>
       <Text style={{ color, fontSize: 22, fontFamily: "Rajdhani_700Bold" }}>{value}</Text>
-      <Text style={{ color: "#444", fontSize: 9, fontFamily: "Rajdhani_700Bold", letterSpacing: 1.2 }}>{label}</Text>
+      <Text style={{ color: C.outline, fontSize: 10, fontFamily: "Rajdhani_500Medium", letterSpacing: 0.8, marginTop: 1 }}>{label}</Text>
     </View>
   );
 }
 
-const CT = 3;
-const CZ = 20;
+const CT = 3, CZ = 22;
 
 const S = StyleSheet.create({
   root: { flex: 1 },
-  fill: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
-  permText: { color: "#A1A1A0", fontSize: 16, fontFamily: "Rajdhani_500Medium" },
-  permBtn: { backgroundColor: "#F5C518", borderRadius: 4, paddingHorizontal: 24, height: 60, alignItems: "center", justifyContent: "center" },
-  permBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+
+  permScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  permCard: {
+    borderRadius: C.radiusLg,
+    padding: 28,
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+    maxWidth: 360,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.outlineVariant,
+  },
+  permIconBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  permTitle: {
+    color: C.onSurface,
+    fontSize: 18,
+    fontFamily: "Rajdhani_600SemiBold",
+    textAlign: "center",
+  },
+  permBody: {
+    color: C.onSurfaceVariant,
+    fontSize: 14,
+    fontFamily: "Rajdhani_400Regular",
+    textAlign: "center",
+  },
+  permBtn: {
+    backgroundColor: C.primary,
+    borderRadius: C.radius,
+    paddingHorizontal: 24,
+    height: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+    width: "100%",
+  },
+  permBtnText: {
+    color: C.onPrimary,
+    fontSize: 15,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
+  },
+
   cameraArea: { flex: 65, backgroundColor: "#000", overflow: "hidden" },
-  camTop: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 12, paddingBottom: 8, justifyContent: "space-between" },
-  camBtn: { width: 36, height: 36, borderRadius: 3, backgroundColor: "rgba(0,0,0,0.3)", alignItems: "center", justifyContent: "center" },
-  camTopCenter: { flex: 1, alignItems: "center", paddingTop: 8 },
-  camBatchLabel: { color: "rgba(255,255,255,0.45)", fontSize: 12, fontFamily: "Rajdhani_500Medium" },
+
+  camHud: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingHorizontal: 12,
+    paddingBottom: 10,
+    justifyContent: "space-between",
+  },
+  hudBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: C.radiusSm,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  hudBtnActive: {
+    backgroundColor: C.primary,
+  },
+  hudCenter: { flex: 1, alignItems: "center", paddingTop: 6 },
+  batchPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: C.radiusFull,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  batchPillDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.primary },
+  batchPillText: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 12,
+    fontFamily: "Rajdhani_500Medium",
+    maxWidth: 160,
+  },
+
   reticle: { ...StyleSheet.absoluteFillObject, margin: 52 },
-  c: { position: "absolute", width: CZ, height: CZ },
-  cTL: { top: 0, left: 0, borderTopWidth: CT, borderLeftWidth: CT, borderColor: "#fff" },
-  cTR: { top: 0, right: 0, borderTopWidth: CT, borderRightWidth: CT, borderColor: "#fff" },
-  cBL: { bottom: 0, left: 0, borderBottomWidth: CT, borderLeftWidth: CT, borderColor: "#fff" },
-  cBR: { bottom: 0, right: 0, borderBottomWidth: CT, borderRightWidth: CT, borderColor: "#fff" },
-  voiceBar: {
-    position: "absolute", bottom: 10, alignSelf: "center",
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "rgba(0,0,0,0.65)", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 3,
+  corner: { position: "absolute", width: CZ, height: CZ },
+  cTL: { top: 0, left: 0, borderTopWidth: CT, borderLeftWidth: CT, borderColor: "rgba(255,255,255,0.8)" },
+  cTR: { top: 0, right: 0, borderTopWidth: CT, borderRightWidth: CT, borderColor: "rgba(255,255,255,0.8)" },
+  cBL: { bottom: 0, left: 0, borderBottomWidth: CT, borderLeftWidth: CT, borderColor: "rgba(255,255,255,0.8)" },
+  cBR: { bottom: 0, right: 0, borderBottomWidth: CT, borderRightWidth: CT, borderColor: "rgba(255,255,255,0.8)" },
+
+  voicePill: {
+    position: "absolute",
+    bottom: 14,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    backgroundColor: "rgba(0,0,0,0.70)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: C.radiusFull,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.outlineVariant,
   },
-  voiceText: { color: "#888", fontSize: 12, fontFamily: "Rajdhani_400Regular" },
+  voicePillText: {
+    color: C.onSurfaceVariant,
+    fontSize: 12,
+    fontFamily: "Rajdhani_400Regular",
+  },
+
   panel: {
-    flex: 35, backgroundColor: "#141414",
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#222",
-    paddingHorizontal: 16, paddingTop: 14, gap: 12,
+    flex: 35,
+    backgroundColor: C.surfaceContainerLow,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: C.outlineVariant,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    gap: 14,
   },
-  statsRow: { flexDirection: "row", alignItems: "center" },
-  statDiv: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: "#222" },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.surfaceContainer,
+    borderRadius: C.radiusSm,
+    overflow: "hidden",
+  },
+  statDiv: { width: StyleSheet.hairlineWidth, height: 36, backgroundColor: C.outlineVariant },
   statusLine: { flexDirection: "row", alignItems: "center", gap: 8 },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { color: "#555", fontSize: 11, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
-  scanBtn: {
-    height: 60, backgroundColor: "#F5C518", borderRadius: 4,
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
+  statusDot: { width: 7, height: 7, borderRadius: 4 },
+  statusText: {
+    color: C.onSurfaceVariant,
+    fontSize: 12,
+    fontFamily: "Rajdhani_500Medium",
+    letterSpacing: 0.4,
   },
-  scanBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  scanBtn: {
+    height: 52,
+    backgroundColor: C.primary,
+    borderRadius: C.radius,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    elevation: 2,
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+  },
+  scanBtnText: {
+    color: C.onPrimary,
+    fontSize: 15,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
+  },
 });

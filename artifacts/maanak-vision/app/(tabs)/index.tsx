@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import InspectionCard from "@/components/InspectionCard";
+import C from "@/constants/colors";
 import { useInspection } from "@/context/InspectionContext";
 import { useTraining } from "@/context/TrainingContext";
 import type { InspectionResult } from "@/context/InspectionContext";
@@ -21,10 +22,10 @@ import type { InspectionResult } from "@/context/InspectionContext";
 type Filter = "all" | InspectionResult;
 
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "pass", label: "Pass" },
-  { key: "fail", label: "Fail" },
-  { key: "warning", label: "Warn" },
+  { key: "all",     label: "All"     },
+  { key: "pass",    label: "Pass"    },
+  { key: "fail",    label: "Fail"    },
+  { key: "warning", label: "Caution" },
 ];
 
 export default function InspectScreen() {
@@ -36,8 +37,8 @@ export default function InspectScreen() {
   const [batchName, setBatchName] = useState("");
 
   const isWeb = Platform.OS === "web";
-  const topPad = isWeb ? 67 : insets.top;
-  const bottomPad = isWeb ? 34 : insets.bottom;
+  const topPad = isWeb ? 56 : insets.top;
+  const bottomPad = isWeb ? 32 : insets.bottom;
 
   const filtered = filter === "all" ? inspections : inspections.filter((i) => i.result === filter);
   const passCount = inspections.filter((i) => i.result === "pass").length;
@@ -57,106 +58,137 @@ export default function InspectScreen() {
   };
 
   return (
-    <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
+    <View style={[S.root, { backgroundColor: C.background }]}>
 
-      {/* Header */}
-      <View style={[S.header, { paddingTop: topPad + 8 }]}>
-        <Text style={S.appName}>MAANAK VISION</Text>
-        {inspections.length > 0 && (
-          <View style={S.statRow}>
-            <Text style={[S.statNum, { color: "#22C55E" }]}>{passCount}</Text>
-            <Text style={S.statSep}>/</Text>
-            <Text style={[S.statNum, { color: "#EF4444" }]}>{failCount}</Text>
-            <Text style={S.statSep}>/</Text>
-            <Text style={[S.statNum, { color: "#F59E0B" }]}>{warnCount}</Text>
-            <Text style={S.statLabel}>  P/F/W</Text>
-          </View>
-        )}
+      {/* Top App Bar */}
+      <View style={[S.appBar, { paddingTop: topPad }]}>
+        <View style={S.appBarRow}>
+          <Text style={S.appBarTitle}>Maanak Vision</Text>
+          {inspections.length > 0 && (
+            <View style={S.statCapsules}>
+              <StatCapsule value={passCount} color={C.pass} bg={C.passContainer} />
+              <StatCapsule value={failCount} color={C.fail} bg={C.failContainer} />
+              <StatCapsule value={warnCount} color={C.warn} bg={C.warnContainer} />
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* Active batch strip */}
+      {/* Active batch banner */}
       {currentBatch && (
-        <View style={S.batchStrip}>
-          <View style={[S.activePip, { backgroundColor: "#F5C518" }]} />
-          <View style={{ flex: 1 }}>
-            <Text style={S.batchName} numberOfLines={1}>{currentBatch.productName}</Text>
-            <Text style={S.batchMeta}>{currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail</Text>
+        <View style={S.batchBanner}>
+          <View style={S.batchBannerLeft}>
+            <View style={S.batchActiveDot} />
+            <View>
+              <Text style={S.batchBannerName} numberOfLines={1}>{currentBatch.productName}</Text>
+              <Text style={S.batchBannerMeta}>
+                {currentBatch.totalParts} scanned · {currentBatch.passed} pass · {currentBatch.failed} fail
+              </Text>
+            </View>
           </View>
-          <Pressable onPress={() => closeBatch(currentBatch.id)} style={S.closeChip}>
-            <Text style={S.closeChipText}>CLOSE</Text>
+          <Pressable
+            onPress={() => closeBatch(currentBatch.id)}
+            style={({ pressed }) => [S.closeBatchBtn, { opacity: pressed ? 0.7 : 1 }]}
+          >
+            <Text style={S.closeBatchText}>Close</Text>
           </Pressable>
         </View>
       )}
 
-      {/* Filter row */}
+      {/* Filter Chip Bar */}
       <View style={S.filterBar}>
-        {FILTERS.map((f) => (
-          <Pressable key={f.key} onPress={() => setFilter(f.key)} style={S.filterTab}>
-            <Text style={[S.filterText, { color: filter === f.key ? "#F5C518" : "#555" }]}>{f.label}</Text>
-            {filter === f.key && <View style={S.activeUnderline} />}
-          </Pressable>
-        ))}
-        <Text style={S.filterTotal}>{filtered.length}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.filterBarContent}>
+          {FILTERS.map((f) => {
+            const active = filter === f.key;
+            return (
+              <Pressable
+                key={f.key}
+                onPress={() => setFilter(f.key)}
+                style={[S.filterChip, active && S.filterChipActive]}
+              >
+                {active && (
+                  <MaterialCommunityIcons name="check" size={14} color={C.onSurfaceVariant} />
+                )}
+                <Text style={[S.filterChipText, active && S.filterChipTextActive]}>
+                  {f.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+          <Text style={S.filterCount}>{filtered.length} records</Text>
+        </ScrollView>
       </View>
 
-      {/* Flat inspection list */}
+      {/* Inspection list */}
       <FlatList
         data={filtered.slice(0, 80)}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <InspectionCard inspection={item} />}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={S.emptyRow}>
-            <Text style={S.emptyText}>No records</Text>
+          <View style={S.emptyState}>
+            <MaterialCommunityIcons name="magnify-scan" size={40} color={C.outlineVariant} />
+            <Text style={S.emptyTitle}>No inspection records</Text>
+            <Text style={S.emptyBody}>Start a batch and scan parts to see results here.</Text>
           </View>
         }
-        contentContainerStyle={{ paddingBottom: bottomPad + 90 }}
+        contentContainerStyle={{ paddingBottom: bottomPad + 100 }}
       />
 
-      {/* FAB */}
+      {/* Extended FAB */}
       <Pressable
         onPress={handleScan}
-        style={({ pressed }) => [S.fab, { bottom: bottomPad + (isWeb ? 84 : 70), opacity: pressed ? 0.85 : 1 }]}
+        style={({ pressed }) => [S.fab, { bottom: bottomPad + (isWeb ? 80 : 68), opacity: pressed ? 0.88 : 1 }]}
       >
-        <MaterialCommunityIcons name="barcode-scan" size={18} color="#000" />
-        <Text style={S.fabText}>SCAN PART</Text>
+        <MaterialCommunityIcons name="barcode-scan" size={18} color={C.onPrimary} />
+        <Text style={S.fabText}>Scan Part</Text>
       </Pressable>
 
-      {/* Batch sheet */}
+      {/* Bottom sheet — Start batch */}
       <Modal visible={showSheet} transparent animationType="slide" onRequestClose={() => setShowSheet(false)}>
-        <Pressable style={S.overlay} onPress={() => setShowSheet(false)} />
-        <View style={[S.sheet, { paddingBottom: bottomPad + 16 }]}>
+        <Pressable style={S.scrim} onPress={() => setShowSheet(false)} />
+        <View style={[S.sheet, { paddingBottom: bottomPad + 20 }]}>
           <View style={S.sheetHandle} />
-          <TextInput
-            style={S.sheetInput}
-            placeholder="Product or batch name"
-            placeholderTextColor="#444"
-            value={batchName}
-            onChangeText={setBatchName}
-            autoFocus
-            returnKeyType="done"
-            onSubmitEditing={handleStart}
-          />
+          <Text style={S.sheetTitle}>New Inspection Batch</Text>
+
+          <View style={S.inputContainer}>
+            <MaterialCommunityIcons name="label-outline" size={18} color={C.onSurfaceVariant} style={S.inputIcon} />
+            <TextInput
+              style={S.sheetInput}
+              placeholder="Product or batch name"
+              placeholderTextColor={C.outline}
+              value={batchName}
+              onChangeText={setBatchName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleStart}
+            />
+          </View>
+
           {products.length > 0 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              {products.map((p) => (
-                <Pressable
-                  key={p.id}
-                  onPress={() => setBatchName(p.name)}
-                  style={[S.quickChip, { backgroundColor: batchName === p.name ? "#F5C518" : "#1a1a1a" }]}
-                >
-                  <Text style={{ color: batchName === p.name ? "#000" : "#555", fontSize: 13, fontFamily: "Rajdhani_500Medium" }}>
-                    {p.name}
-                  </Text>
-                </Pressable>
-              ))}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={S.quickChipScroll}>
+              {products.map((p) => {
+                const sel = batchName === p.name;
+                return (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => setBatchName(p.name)}
+                    style={[S.quickChip, sel && S.quickChipSelected]}
+                  >
+                    <Text style={[S.quickChipText, sel && S.quickChipTextSelected]}>{p.name}</Text>
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           )}
+
           <Pressable
             onPress={handleStart}
-            style={({ pressed }) => [S.startBtn, { opacity: batchName.trim() ? (pressed ? 0.85 : 1) : 0.35 }]}
+            style={({ pressed }) => [S.startBtn, { opacity: batchName.trim() ? (pressed ? 0.88 : 1) : 0.38 }]}
+            disabled={!batchName.trim()}
           >
-            <Text style={S.startBtnText}>START BATCH</Text>
+            <MaterialCommunityIcons name="play-circle-outline" size={20} color={C.onPrimary} />
+            <Text style={S.startBtnText}>Start Batch</Text>
           </Pressable>
         </View>
       </Modal>
@@ -164,87 +196,253 @@ export default function InspectScreen() {
   );
 }
 
+function StatCapsule({ value, color, bg }: { value: number; color: string; bg: string }) {
+  return (
+    <View style={[S.statCapsule, { backgroundColor: bg }]}>
+      <Text style={[S.statCapsuleNum, { color }]}>{value}</Text>
+    </View>
+  );
+}
+
 const S = StyleSheet.create({
   root: { flex: 1 },
-  header: {
+
+  appBar: {
+    backgroundColor: C.surfaceContainerLow,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.outlineVariant,
+  },
+  appBarRow: {
+    height: 56,
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#1f1f1f",
   },
-  appName: { color: "#F5C518", fontSize: 20, fontFamily: "Rajdhani_700Bold", letterSpacing: 3 },
-  statRow: { flexDirection: "row", alignItems: "center" },
-  statNum: { fontSize: 18, fontFamily: "Rajdhani_700Bold" },
-  statSep: { color: "#2a2a2a", fontSize: 16, marginHorizontal: 1 },
-  statLabel: { color: "#444", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
-  batchStrip: {
+  appBarTitle: {
+    color: C.onSurface,
+    fontSize: 22,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.15,
+  },
+  statCapsules: { flexDirection: "row", gap: 6 },
+  statCapsule: {
+    borderRadius: C.radiusFull,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    minWidth: 32,
+    alignItems: "center",
+  },
+  statCapsuleNum: {
+    fontSize: 13,
+    fontFamily: "Rajdhani_700Bold",
+  },
+
+  batchBanner: {
     flexDirection: "row",
     alignItems: "center",
-    height: 48,
+    justifyContent: "space-between",
+    backgroundColor: C.primaryContainer,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#1f1f1f",
+    borderBottomColor: C.outlineVariant,
   },
-  activePip: { width: 3, height: "100%", marginRight: 13 },
-  batchName: { color: "#fff", fontSize: 14, fontFamily: "Rajdhani_600SemiBold" },
-  batchMeta: { color: "#555", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
-  closeChip: { marginRight: 14, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#1a1a1a", borderRadius: 3 },
-  closeChipText: { color: "#555", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
+  batchBannerLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  batchActiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: C.primary,
+  },
+  batchBannerName: {
+    color: C.onPrimaryContainer,
+    fontSize: 14,
+    fontFamily: "Rajdhani_600SemiBold",
+  },
+  batchBannerMeta: {
+    color: C.primary,
+    fontSize: 12,
+    fontFamily: "Rajdhani_400Regular",
+    marginTop: 1,
+    opacity: 0.8,
+  },
+  closeBatchBtn: {
+    borderWidth: 1,
+    borderColor: C.primary,
+    borderRadius: C.radiusFull,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+  },
+  closeBatchText: {
+    color: C.primary,
+    fontSize: 12,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.4,
+  },
+
   filterBar: {
+    backgroundColor: C.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: C.outlineVariant,
+  },
+  filterBarContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    alignItems: "center",
+  },
+  filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    height: 36,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#1f1f1f",
-    gap: 20,
+    gap: 4,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: C.radiusFull,
+    borderWidth: 1,
+    borderColor: C.outlineVariant,
+    backgroundColor: "transparent",
   },
-  filterTab: { alignItems: "center", position: "relative", paddingBottom: 1 },
-  filterText: { fontSize: 13, fontFamily: "Rajdhani_600SemiBold", letterSpacing: 0.6 },
-  activeUnderline: { position: "absolute", bottom: 0, left: 0, right: 0, height: 2, backgroundColor: "#F5C518" },
-  filterTotal: { marginLeft: "auto", color: "#333", fontSize: 12, fontFamily: "Rajdhani_400Regular" },
-  emptyRow: {
-    paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1f1f1f",
+  filterChipActive: {
+    backgroundColor: C.secondaryContainer,
+    borderColor: "transparent",
   },
-  emptyText: { color: "#2a2a2a", fontSize: 13, fontFamily: "Rajdhani_400Regular" },
+  filterChipText: {
+    color: C.onSurfaceVariant,
+    fontSize: 13,
+    fontFamily: "Rajdhani_500Medium",
+    letterSpacing: 0.2,
+  },
+  filterChipTextActive: {
+    color: C.onSecondaryContainer,
+    fontFamily: "Rajdhani_600SemiBold",
+  },
+  filterCount: {
+    color: C.outline,
+    fontSize: 12,
+    fontFamily: "Rajdhani_400Regular",
+    marginLeft: 4,
+  },
+
+  emptyState: {
+    alignItems: "center",
+    paddingTop: 80,
+    paddingHorizontal: 40,
+    gap: 12,
+  },
+  emptyTitle: {
+    color: C.onSurfaceVariant,
+    fontSize: 16,
+    fontFamily: "Rajdhani_500Medium",
+    letterSpacing: 0.15,
+  },
+  emptyBody: {
+    color: C.outline,
+    fontSize: 14,
+    fontFamily: "Rajdhani_400Regular",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
   fab: {
     position: "absolute",
     right: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "#F5C518",
+    gap: 10,
+    backgroundColor: C.primary,
     paddingHorizontal: 20,
-    height: 52,
-    borderRadius: 4,
-    elevation: 0,
-    shadowOpacity: 0,
+    height: 56,
+    borderRadius: C.radiusLg,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  fabText: { color: "#000", fontSize: 16, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.7)" },
+  fabText: {
+    color: C.onPrimary,
+    fontSize: 15,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
+  },
+
+  scrim: { flex: 1, backgroundColor: C.scrim },
   sheet: {
-    backgroundColor: "#111",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#222",
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: C.surfaceContainerHigh,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    gap: 16,
   },
-  sheetHandle: { width: 36, height: 3, backgroundColor: "#2a2a2a", borderRadius: 2, alignSelf: "center", marginBottom: 16 },
-  sheetInput: {
+  sheetHandle: {
+    width: 32,
+    height: 4,
+    backgroundColor: C.onSurfaceVariant,
+    borderRadius: 2,
+    alignSelf: "center",
+    opacity: 0.4,
+    marginBottom: 8,
+  },
+  sheetTitle: {
+    color: C.onSurface,
+    fontSize: 20,
+    fontFamily: "Rajdhani_600SemiBold",
+    letterSpacing: 0.15,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.surfaceContainerHighest,
+    borderRadius: C.radiusSm,
+    paddingHorizontal: 12,
     height: 52,
-    backgroundColor: "#0f0f0f",
-    borderBottomWidth: 1,
-    borderBottomColor: "#2a2a2a",
-    paddingHorizontal: 0,
-    fontSize: 17,
-    fontFamily: "Rajdhani_500Medium",
-    color: "#fff",
-    marginBottom: 12,
+    gap: 8,
   },
-  quickChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 3, marginRight: 8 },
-  startBtn: { height: 60, backgroundColor: "#F5C518", borderRadius: 4, alignItems: "center", justifyContent: "center" },
-  startBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  inputIcon: { opacity: 0.6 },
+  sheetInput: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: "Rajdhani_400Regular",
+    color: C.onSurface,
+    height: "100%",
+  },
+  quickChipScroll: { flexGrow: 0 },
+  quickChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: C.radiusFull,
+    borderWidth: 1,
+    borderColor: C.outlineVariant,
+    marginRight: 8,
+  },
+  quickChipSelected: {
+    backgroundColor: C.primaryContainer,
+    borderColor: C.primary,
+  },
+  quickChipText: {
+    color: C.onSurfaceVariant,
+    fontSize: 13,
+    fontFamily: "Rajdhani_500Medium",
+  },
+  quickChipTextSelected: {
+    color: C.onPrimaryContainer,
+    fontFamily: "Rajdhani_600SemiBold",
+  },
+  startBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 56,
+    backgroundColor: C.primary,
+    borderRadius: C.radius,
+  },
+  startBtnText: {
+    color: C.onPrimary,
+    fontSize: 16,
+    fontFamily: "Rajdhani_700Bold",
+    letterSpacing: 0.1,
+  },
 });

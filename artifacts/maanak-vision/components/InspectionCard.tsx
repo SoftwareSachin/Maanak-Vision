@@ -1,6 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import C from "@/constants/colors";
 import type { Inspection } from "@/context/InspectionContext";
 
 interface Props {
@@ -9,9 +10,7 @@ interface Props {
 
 function timeStr(ts: number) {
   const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${hh}:${mm}`;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 function dateStr(ts: number) {
   const d = new Date(ts);
@@ -21,107 +20,126 @@ function dateStr(ts: number) {
 }
 
 const DEFECT_LABEL: Record<string, string> = {
-  crack: "Crack",
-  scratch: "Scratch",
-  colour_mismatch: "Colour",
-  dimensional: "Dim. error",
-  none: "",
+  crack:           "Surface crack",
+  scratch:         "Linear scratch",
+  colour_mismatch: "Colour deviation",
+  dimensional:     "Dimensional error",
+  none:            "",
 };
 
-const RESULT_ICON: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  pass: "check-bold",
-  fail: "close-thick",
-  warning: "alert",
-};
-const RESULT_BG: Record<string, string> = {
-  pass: "#052210",
-  fail: "#1f0404",
-  warning: "#1f1100",
-};
-const RESULT_COLOR: Record<string, string> = {
-  pass: "#22C55E",
-  fail: "#EF4444",
-  warning: "#F59E0B",
-};
-const BADGE_LABEL: Record<string, string> = {
-  pass: "PASS",
-  fail: "FAIL",
-  warning: "WARN",
+const RESULT_CONFIG: Record<string, {
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  iconColor: string;
+  containerBg: string;
+  chipText: string;
+  chipDot: string;
+}> = {
+  pass: {
+    icon:        "check-circle-outline",
+    iconColor:   C.pass,
+    containerBg: C.passContainer,
+    chipText:    "Pass",
+    chipDot:     C.pass,
+  },
+  fail: {
+    icon:        "alert-circle-outline",
+    iconColor:   C.fail,
+    containerBg: C.failContainer,
+    chipText:    "Fail",
+    chipDot:     C.fail,
+  },
+  warning: {
+    icon:        "alert-outline",
+    iconColor:   C.warn,
+    containerBg: C.warnContainer,
+    chipText:    "Caution",
+    chipDot:     C.warn,
+  },
 };
 
 export default function InspectionCard({ inspection }: Props) {
   const { result, productName, defects, timestamp } = inspection;
   const defect = defects[0]?.type !== "none" ? defects[0]?.type : null;
-  const iconBg = RESULT_BG[result];
-  const iconColor = RESULT_COLOR[result];
-  const badgeBg = RESULT_COLOR[result];
+  const cfg = RESULT_CONFIG[result] ?? RESULT_CONFIG.pass;
 
   return (
-    <View style={styles.row}>
-      {/* Left: 36×36 result icon */}
-      <View style={[styles.iconBox, { backgroundColor: iconBg }]}>
-        <MaterialCommunityIcons
-          name={RESULT_ICON[result]}
-          size={15}
-          color={iconColor}
-        />
+    <View style={S.item}>
+      {/* Leading tonal icon container */}
+      <View style={[S.leading, { backgroundColor: cfg.containerBg }]}>
+        <MaterialCommunityIcons name={cfg.icon} size={20} color={cfg.iconColor} />
       </View>
 
-      {/* Center */}
-      <View style={styles.center}>
-        <Text style={styles.name} numberOfLines={1}>{productName}</Text>
-        <Text style={styles.meta}>
-          {dateStr(timestamp)} {timeStr(timestamp)}
+      {/* Text block */}
+      <View style={S.body}>
+        <Text style={S.headline} numberOfLines={1}>{productName}</Text>
+        <Text style={S.supporting} numberOfLines={1}>
+          {dateStr(timestamp)} · {timeStr(timestamp)}
           {defect ? `  ·  ${DEFECT_LABEL[defect] ?? defect}` : ""}
         </Text>
       </View>
 
-      {/* Right: filled pill badge */}
-      <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-        <Text style={styles.badgeText}>{BADGE_LABEL[result]}</Text>
+      {/* Trailing: outlined status chip */}
+      <View style={[S.chip, { borderColor: cfg.chipDot }]}>
+        <View style={[S.chipDot, { backgroundColor: cfg.chipDot }]} />
+        <Text style={[S.chipText, { color: cfg.chipDot }]}>{cfg.chipText}</Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    height: 56,
+const S = StyleSheet.create({
+  item: {
+    minHeight: 72,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    gap: 12,
+    paddingVertical: 12,
+    gap: 16,
+    backgroundColor: C.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#1f1f1f",
+    borderBottomColor: C.outlineVariant,
   },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 3,
+  leading: {
+    width: 40,
+    height: 40,
+    borderRadius: C.radiusSm,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
-  center: { flex: 1, gap: 2 },
-  name: {
-    color: "#E8E8E8",
-    fontSize: 15,
+  body: {
+    flex: 1,
+    gap: 3,
+  },
+  headline: {
+    color: C.onSurface,
+    fontSize: 14,
     fontFamily: "Rajdhani_500Medium",
-    letterSpacing: 0.2,
+    letterSpacing: 0.15,
   },
-  meta: {
-    color: "#555",
-    fontSize: 11,
+  supporting: {
+    color: C.onSurfaceVariant,
+    fontSize: 12,
     fontFamily: "Rajdhani_400Regular",
+    letterSpacing: 0.4,
   },
-  badge: {
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderWidth: 1,
+    borderRadius: C.radiusFull,
     paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 3,
+    paddingVertical: 4,
   },
-  badgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 1,
+  chipDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 99,
+  },
+  chipText: {
+    fontFamily: "Rajdhani_600SemiBold",
+    fontSize: 11,
+    letterSpacing: 0.4,
   },
 });

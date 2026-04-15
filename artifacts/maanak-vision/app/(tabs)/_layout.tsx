@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import C from "@/constants/colors";
 
 export default function TabLayout() {
   const isWeb = Platform.OS === "web";
@@ -9,35 +10,43 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#F5C518",
-        tabBarInactiveTintColor: "#444",
+        tabBarActiveTintColor: C.primary,
+        tabBarInactiveTintColor: C.onSurfaceVariant,
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontFamily: "Rajdhani_700Bold",
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          marginTop: 1,
+          fontSize: 11,
+          fontFamily: "Rajdhani_600SemiBold",
+          letterSpacing: 0.5,
+          marginTop: 2,
         },
         tabBarStyle: {
-          backgroundColor: "#111",
+          backgroundColor: C.surfaceContainerLow,
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: "#222",
-          height: isWeb ? 84 : 56,
-          paddingBottom: isWeb ? 16 : 6,
+          borderTopColor: C.outlineVariant,
+          height: isWeb ? 80 : 64,
+          paddingBottom: isWeb ? 16 : 8,
+          paddingTop: 8,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarBackground: () => (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#111" }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: C.surfaceContainerLow }]} />
         ),
+        tabBarIconStyle: { marginBottom: 0 },
+        tabBarItemStyle: { paddingVertical: 0 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Inspect",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="magnify-scan" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[S.indicator, focused && S.indicatorActive]}>
+              <MaterialCommunityIcons
+                name={focused ? "magnify-scan" : "magnify-scan"}
+                size={22}
+                color={color}
+              />
+            </View>
           ),
         }}
       />
@@ -45,8 +54,10 @@ export default function TabLayout() {
         name="train"
         options={{
           title: "Train",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="camera-iris" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[S.indicator, focused && S.indicatorActive]}>
+              <MaterialCommunityIcons name="camera-iris" size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -54,8 +65,10 @@ export default function TabLayout() {
         name="vault"
         options={{
           title: "Vault",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="certificate-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[S.indicator, focused && S.indicatorActive]}>
+              <MaterialCommunityIcons name="certificate-outline" size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -63,11 +76,26 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="tune-variant" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[S.indicator, focused && S.indicatorActive]}>
+              <MaterialCommunityIcons name="tune-variant" size={22} color={color} />
+            </View>
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const S = StyleSheet.create({
+  indicator: {
+    width: 64,
+    height: 32,
+    borderRadius: C.radiusFull,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  indicatorActive: {
+    backgroundColor: C.primaryContainer,
+  },
+});
