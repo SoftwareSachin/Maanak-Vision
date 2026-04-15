@@ -7,7 +7,7 @@ import { useInspection } from "@/context/InspectionContext";
 import type { Batch } from "@/context/InspectionContext";
 
 function fmtDate(ts: number) {
-  return new Date(ts).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(ts).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 }
 function fmtTime(ts: number) {
   return new Date(ts).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
@@ -23,48 +23,29 @@ export default function VaultScreen() {
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   const totalParts = batches.reduce((a, b) => a + b.totalParts, 0);
-  const certified = batches.filter((b) => b.certificateId).length;
   const totalPass = batches.reduce((a, b) => a + b.passed, 0);
   const passRate = totalParts > 0 ? Math.round((totalPass / totalParts) * 100) : 0;
 
   return (
     <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
-      {/* Top bar */}
-      <View style={[S.topBar, { paddingTop: topPad + 6, borderBottomColor: "#2a2a2a" }]}>
-        <View>
-          <Text style={S.title}>BIS 2026 VAULT</Text>
-          <Text style={S.sub}>Inspection Certificates</Text>
-        </View>
-        <View style={S.stampBox}>
-          <Feather name="shield" size={12} color="#F5C518" />
-          <Text style={S.stampText}>CERTIFIED</Text>
-        </View>
+      {/* Header — no subtitle, no stamp badge */}
+      <View style={[S.topBar, { paddingTop: topPad + 8 }]}>
+        <Text style={S.title}>BIS 2026 VAULT</Text>
+        {totalParts > 0 && (
+          <Text style={S.headerMeta}>{passRate}% pass · {batches.length} batches · {totalParts} parts</Text>
+        )}
       </View>
 
-      {/* Summary row — PhonePe style horizontal stats */}
-      {batches.length > 0 && (
-        <View style={[S.summRow, { borderBottomColor: "#2a2a2a" }]}>
-          <SummCell label="BATCHES" value={batches.length} />
-          <View style={S.vDiv} />
-          <SummCell label="CERTIFIED" value={certified} color="#22C55E" />
-          <View style={S.vDiv} />
-          <SummCell label="TOTAL PARTS" value={totalParts} />
-          <View style={S.vDiv} />
-          <SummCell label="PASS RATE" value={`${passRate}%`} color={passRate >= 90 ? "#22C55E" : passRate >= 70 ? "#F59E0B" : "#EF4444"} />
-        </View>
-      )}
-
+      {/* Flat list of batches — no empty state illustration */}
       {batches.length === 0 ? (
-        <View style={S.empty}>
-          <Feather name="shield" size={28} color="#2a2a2a" />
-          <Text style={S.emptyText}>No batches yet</Text>
-          <Text style={S.emptyHint}>Complete inspection batches to generate certificates</Text>
+        <View style={[S.emptyRow]}>
+          <Text style={S.emptyText}>No batches — complete an inspection batch to generate a certificate</Text>
         </View>
       ) : (
         <SectionList
           sections={batches.map((b) => ({
             batch: b,
-            data: expanded === b.id ? b.inspections.slice(0, 10) : [],
+            data: expanded === b.id ? b.inspections.slice(0, 12) : [],
           }))}
           keyExtractor={(item, i) => item.id ?? String(i)}
           showsVerticalScrollIndicator={false}
@@ -84,7 +65,7 @@ export default function VaultScreen() {
             />
           )}
           renderItem={({ item }) => (
-            <View style={[S.inspRow, { borderBottomColor: "#1a1a1a", backgroundColor: "#080808" }]}>
+            <View style={[S.inspRow, { backgroundColor: "#080808" }]}>
               <Text style={S.inspTime}>{fmtTime(item.timestamp)}</Text>
               <Text style={S.inspName} numberOfLines={1}>{item.productName}</Text>
               <StatusBadge result={item.result} />
@@ -100,49 +81,67 @@ function BatchRow({ batch, isExpanded, isActive, onToggle, onCertify }: {
   batch: Batch; isExpanded: boolean; isActive: boolean; onToggle: () => void; onCertify: () => void;
 }) {
   const passRate = batch.totalParts > 0 ? Math.round((batch.passed / batch.totalParts) * 100) : 0;
+  const passColor = passRate >= 90 ? "#22C55E" : passRate >= 70 ? "#F59E0B" : "#EF4444";
+
   return (
-    <View style={[S.batchBlock, { borderBottomColor: "#2a2a2a" }]}>
+    <View style={[S.batchBlock]}>
+      {/* Batch row — 60dp, PhonePe transaction row format */}
       <Pressable onPress={onToggle} style={S.batchRow}>
-        {isActive && <View style={[S.liveBar, { backgroundColor: "#F5C518" }]} />}
+        {isActive && <View style={[S.livePip, { backgroundColor: "#F5C518" }]} />}
+
+        {/* Left: pass/fail/total counts */}
+        <View style={[S.batchIconBox, { backgroundColor: batch.certificateId ? "#0D2E18" : "#111" }]}>
+          <Feather
+            name={batch.certificateId ? "shield" : isActive ? "activity" : "archive"}
+            size={16}
+            color={batch.certificateId ? "#22C55E" : isActive ? "#F5C518" : "#444"}
+          />
+        </View>
+
+        {/* Center: name + date */}
         <View style={S.batchCenter}>
           <Text style={S.batchName} numberOfLines={1}>{batch.productName}</Text>
-          <Text style={S.batchDate}>{fmtDate(batch.createdAt)}</Text>
+          <Text style={S.batchMeta}>{fmtDate(batch.createdAt)} · {batch.totalParts} parts</Text>
         </View>
-        <View style={S.batchRight}>
-          <Text style={[S.batchPass, { color: "#22C55E" }]}>{batch.passed}</Text>
-          <Text style={S.batchSlash}>/</Text>
-          <Text style={[S.batchFail, { color: "#EF4444" }]}>{batch.failed}</Text>
-          <Text style={S.batchTotal}>/{batch.totalParts}</Text>
-        </View>
-        {batch.certificateId && <Feather name="shield" size={14} color="#22C55E" style={{ marginLeft: 8 }} />}
-        <Feather name={isExpanded ? "chevron-up" : "chevron-down"} size={14} color="#6B6B6B" style={{ marginLeft: 6 }} />
+
+        {/* Right: pass rate + chevron */}
+        <Text style={[S.passRate, { color: passColor }]}>{passRate}%</Text>
+        <Feather name={isExpanded ? "chevron-up" : "chevron-down"} size={14} color="#444" style={{ marginLeft: 8 }} />
       </Pressable>
 
+      {/* Expanded detail */}
       {isExpanded && (
-        <View style={[S.batchDetail, { borderTopColor: "#2a2a2a" }]}>
-          {/* Progress bar */}
-          <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 4 }}>
-            <View style={S.barBg}>
-              <View style={[S.barFill, { width: `${passRate}%`, backgroundColor: passRate >= 90 ? "#22C55E" : passRate >= 70 ? "#F59E0B" : "#EF4444" }]} />
-            </View>
-            <Text style={S.barLabel}>{passRate}% pass rate · {batch.totalParts} parts inspected</Text>
+        <View style={[S.detail, { borderTopColor: "#1a1a1a" }]}>
+          {/* Pass/Fail/Warn counts — inline, no cards */}
+          <View style={S.countsRow}>
+            <CountCell label="PASS" value={batch.passed} color="#22C55E" />
+            <View style={S.countDiv} />
+            <CountCell label="FAIL" value={batch.failed} color="#EF4444" />
+            <View style={S.countDiv} />
+            <CountCell label="WARN" value={batch.warnings} color="#F59E0B" />
+            <View style={S.countDiv} />
+            <CountCell label="TOTAL" value={batch.totalParts} color="#A1A1A0" />
           </View>
 
-          {/* Certificate block or certify action */}
+          {/* Progress bar — thin 2dp */}
+          <View style={S.barBg}>
+            <View style={[S.barFill, { width: `${passRate}%`, backgroundColor: passColor }]} />
+          </View>
+
+          {/* Certificate */}
           {batch.certificateId ? (
-            <View style={[S.certBlock, { borderColor: "#2a2a2a" }]}>
-              <QRMock size={48} />
+            <View style={[S.certBlock]}>
+              <QRMock size={44} />
               <View style={{ flex: 1 }}>
-                <Text style={S.certTitle}>ISI CERTIFICATE</Text>
+                <Text style={S.certLabel}>ISI CERTIFICATE</Text>
                 <Text style={S.certId}>{batch.certificateId}</Text>
-                <Text style={S.certMeta}>{batch.productName} · {fmtDate(batch.createdAt)}</Text>
               </View>
               <View style={[S.certPill, { backgroundColor: "#22C55E" }]}>
                 <Text style={S.certPillText}>CERTIFIED</Text>
               </View>
             </View>
           ) : isActive ? (
-            <Text style={[S.barLabel, { paddingHorizontal: 16, paddingBottom: 10 }]}>Batch is active — close batch to certify</Text>
+            <Text style={S.activeNote}>Active batch — scan more parts or close to certify</Text>
           ) : (
             <Pressable onPress={onCertify} style={({ pressed }) => [S.certifyBtn, { opacity: pressed ? 0.8 : 1 }]}>
               <Feather name="shield" size={15} color="#000" />
@@ -155,11 +154,11 @@ function BatchRow({ batch, isExpanded, isActive, onToggle, onCertify }: {
   );
 }
 
-function SummCell({ label, value, color }: { label: string; value: number | string; color?: string }) {
+function CountCell({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
-      <Text style={{ color: color ?? "#FFFFFF", fontSize: 18, fontFamily: "Rajdhani_700Bold" }}>{value}</Text>
-      <Text style={{ color: "#6B6B6B", fontSize: 9, fontFamily: "Rajdhani_700Bold", letterSpacing: 1.2 }}>{label}</Text>
+      <Text style={{ color, fontSize: 20, fontFamily: "Rajdhani_700Bold" }}>{value}</Text>
+      <Text style={{ color: "#6B6B6B", fontSize: 9, fontFamily: "Rajdhani_700Bold", letterSpacing: 1.5 }}>{label}</Text>
     </View>
   );
 }
@@ -181,46 +180,76 @@ function QRMock({ size }: { size: number }) {
 const S = StyleSheet.create({
   root: { flex: 1 },
   topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
-  title: { color: "#F5C518", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  sub: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", letterSpacing: 0.6, marginTop: 1 },
-  stampBox: { flexDirection: "row", alignItems: "center", gap: 5, borderWidth: StyleSheet.hairlineWidth, borderColor: "#F5C518", paddingHorizontal: 8, paddingVertical: 5, borderRadius: 4 },
-  stampText: { color: "#F5C518", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 1.5 },
-  summRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth },
-  vDiv: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: "#2a2a2a" },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
-  emptyText: { color: "#2a2a2a", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
-  emptyHint: { color: "#2a2a2a", fontSize: 13, fontFamily: "Rajdhani_400Regular", textAlign: "center", paddingHorizontal: 40 },
-  batchBlock: { borderBottomWidth: StyleSheet.hairlineWidth },
-  batchRow: { height: 60, flexDirection: "row", alignItems: "center", paddingRight: 16, gap: 0 },
-  liveBar: { width: 3, height: "100%", marginRight: 13 },
-  batchCenter: { flex: 1, paddingLeft: 16 },
-  batchName: { color: "#FFFFFF", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
-  batchDate: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", marginTop: 1 },
-  batchRight: { flexDirection: "row", alignItems: "center" },
-  batchPass: { fontSize: 14, fontFamily: "Rajdhani_700Bold" },
-  batchSlash: { color: "#2a2a2a", fontSize: 13, marginHorizontal: 1 },
-  batchFail: { fontSize: 14, fontFamily: "Rajdhani_700Bold" },
-  batchTotal: { color: "#6B6B6B", fontSize: 13, fontFamily: "Rajdhani_400Regular" },
-  batchDetail: { borderTopWidth: StyleSheet.hairlineWidth, paddingBottom: 12 },
-  barBg: { height: 2, backgroundColor: "#2a2a2a", borderRadius: 1, overflow: "hidden" },
-  barFill: { height: "100%", borderRadius: 1 },
-  barLabel: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
-  certBlock: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginTop: 10, padding: 12, borderWidth: StyleSheet.hairlineWidth, borderRadius: 4, backgroundColor: "#0a0a0a" },
-  certTitle: { color: "#6B6B6B", fontSize: 9, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  certId: { color: "#F5C518", fontSize: 14, fontFamily: "Rajdhani_700Bold", letterSpacing: 1, marginTop: 1 },
-  certMeta: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", marginTop: 2 },
+  title: { color: "#F5C518", fontSize: 20, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  headerMeta: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", marginTop: 1 },
+  emptyRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
+  },
+  emptyText: { color: "#2a2a2a", fontSize: 13, fontFamily: "Rajdhani_400Regular" },
+  batchBlock: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
+  },
+  batchRow: {
+    height: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 16,
+  },
+  livePip: { width: 3, height: "100%", marginRight: 0 },
+  batchIconBox: {
+    width: 40, height: 40, borderRadius: 4,
+    alignItems: "center", justifyContent: "center",
+    marginLeft: 16, marginRight: 12,
+  },
+  batchCenter: { flex: 1 },
+  batchName: { color: "#fff", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
+  batchMeta: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", marginTop: 1 },
+  passRate: { fontSize: 16, fontFamily: "Rajdhani_700Bold" },
+  detail: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  countsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  countDiv: { width: StyleSheet.hairlineWidth, height: 24, backgroundColor: "#2a2a2a" },
+  barBg: { height: 2, backgroundColor: "#1a1a1a", marginHorizontal: 16 },
+  barFill: { height: 2 },
+  certBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#1a1a1a",
+  },
+  certLabel: { color: "#6B6B6B", fontSize: 9, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  certId: { color: "#F5C518", fontSize: 14, fontFamily: "Rajdhani_700Bold", letterSpacing: 1, marginTop: 2 },
   certPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   certPillText: { color: "#fff", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 0.8 },
-  certifyBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#F5C518", height: 60, borderRadius: 6, marginHorizontal: 16, marginTop: 10 },
+  certifyBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, backgroundColor: "#F5C518", height: 60, marginHorizontal: 16, borderRadius: 6,
+  },
   certifyBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  inspRow: { height: 48, flexDirection: "row", alignItems: "center", paddingHorizontal: 16, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth },
-  inspTime: { color: "#6B6B6B", fontSize: 12, fontFamily: "Rajdhani_500Medium", width: 50 },
+  activeNote: { color: "#444", fontSize: 12, fontFamily: "Rajdhani_400Regular", paddingHorizontal: 16 },
+  inspRow: {
+    height: 48, flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, gap: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#1a1a1a",
+  },
+  inspTime: { color: "#6B6B6B", fontSize: 12, fontFamily: "Rajdhani_500Medium", width: 48 },
   inspName: { color: "#A1A1A0", fontSize: 13, fontFamily: "Rajdhani_400Regular", flex: 1 },
 });

@@ -20,131 +20,103 @@ export default function SettingsScreen() {
 
   return (
     <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
-      <View style={[S.topBar, { paddingTop: topPad + 6, borderBottomColor: "#2a2a2a" }]}>
+      <View style={[S.topBar, { paddingTop: topPad + 8 }]}>
         <Text style={S.title}>SETTINGS</Text>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 20 }} showsVerticalScrollIndicator={false}>
 
-        {/* Voice language */}
-        <SectionHead label="VOICE LANGUAGE" />
-        <View style={[S.langGrid, { borderBottomColor: "#2a2a2a" }]}>
+        {/* Section: Voice */}
+        <Row icon="mic" label="Voice language" right={
+          <Text style={S.rowRightText}>{lang}</Text>
+        } />
+
+        {/* Language selector — flat chips, no border, inline */}
+        <View style={[S.chipRow]}>
           {LANGS.map((l) => (
             <Pressable
               key={l}
               onPress={() => setLang(l)}
-              style={[S.langBtn, { backgroundColor: lang === l ? "#F5C518" : "#1a1a1a", borderColor: lang === l ? "#F5C518" : "#2a2a2a" }]}
+              style={[S.langChip, { backgroundColor: lang === l ? "#F5C518" : "#1a1a1a" }]}
             >
-              <Text style={[S.langBtnText, { color: lang === l ? "#000" : "#6B6B6B" }]}>{l}</Text>
+              <Text style={[S.langChipText, { color: lang === l ? "#000" : "#6B6B6B" }]}>{l}</Text>
             </Pressable>
           ))}
         </View>
 
-        {/* Voice commands */}
-        <SectionHead label="VOICE COMMANDS" />
-        {[
-          ["mic", "\"Scan karo\"", "Start scan"],
-          ["mic", "\"Check karo\"", "Inspect part"],
-          ["mic", "\"Batch band karo\"", "Close batch"],
-          ["mic", "\"Report dikho\"", "Open vault"],
-        ].map(([icon, phrase, desc], i) => (
-          <Row key={i} icon={icon as any} left={phrase} right={desc} leftColor="#F5C518" />
-        ))}
+        <Divider />
 
-        {/* Haptic patterns */}
-        <SectionHead label="HAPTIC PATTERNS" />
-        {[
-          ["·", "1 short pulse", "Scan ready"],
-          ["···", "3 rapid pulses", "Defect detected"],
-          ["——", "1 long pulse", "Batch complete"],
-        ].map(([sym, pat, meaning]) => (
-          <View key={pat} style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-            <Text style={S.hapticSym}>{sym}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={S.rowPrimary}>{pat}</Text>
-              <Text style={S.rowSecondary}>{meaning}</Text>
-            </View>
-          </View>
-        ))}
+        <Row icon="mic" label='"Scan karo"' right={<Text style={S.rowRightText}>Start scan</Text>} rightDim />
+        <Row icon="mic" label='"Check karo"' right={<Text style={S.rowRightText}>Inspect part</Text>} rightDim />
+        <Row icon="mic" label='"Batch band karo"' right={<Text style={S.rowRightText}>Close batch</Text>} rightDim />
+        <Row icon="mic" label='"Report dikho"' right={<Text style={S.rowRightText}>Open vault</Text>} rightDim />
 
-        {/* Feedback toggles */}
-        <SectionHead label="FEEDBACK" />
-        <ToggleRow icon="smartphone" label="Haptic Feedback" desc="Vibration on scan result" value={haptics} onChange={setHaptics} />
-        <ToggleRow icon="volume-2" label="Sound Alerts" desc="Audible chime on pass/fail" value={sound} onChange={setSound} />
-        <ToggleRow icon="zap" label="Screen Flash" desc="Full-screen green/red on result" value={flash} onChange={setFlash} />
+        <Divider />
 
-        {/* Data */}
-        <SectionHead label="DATA" />
-        <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-          <Feather name="database" size={16} color="#6B6B6B" />
-          <View style={{ flex: 1, marginLeft: 14 }}>
-            <Text style={S.rowPrimary}>Stored inspections</Text>
-            <Text style={S.rowSecondary}>{inspections.length} records · {batches.length} batches</Text>
-          </View>
-        </View>
+        <Row
+          icon="smartphone"
+          label="Haptic feedback"
+          right={<Switch value={haptics} onValueChange={setHaptics} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        />
+        <Row
+          icon="volume-2"
+          label="Sound alerts"
+          right={<Switch value={sound} onValueChange={setSound} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        />
+        <Row
+          icon="zap"
+          label="Screen flash on result"
+          right={<Switch value={flash} onValueChange={setFlash} trackColor={{ false: "#2a2a2a", true: "#F5C518" }} thumbColor="#fff" />}
+        />
+
+        <Divider />
+
+        <Row
+          icon="database"
+          label="Stored data"
+          right={<Text style={S.rowRightText}>{inspections.length} scans · {batches.length} batches</Text>}
+          rightDim
+        />
         <Pressable
-          onPress={() => Alert.alert("Clear All", `Delete ${inspections.length} inspections and ${batches.length} batches?`, [
-            { text: "Cancel", style: "cancel" },
-            { text: "Delete All", style: "destructive", onPress: clearAll },
-          ])}
+          onPress={() =>
+            Alert.alert(
+              "Clear all data",
+              `Delete ${inspections.length} inspections and ${batches.length} batches?`,
+              [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: clearAll }]
+            )
+          }
           style={({ pressed }) => [S.row, { borderBottomColor: "#2a2a2a", opacity: pressed ? 0.7 : 1 }]}
         >
-          <Feather name="trash-2" size={16} color="#EF4444" />
-          <Text style={[S.rowPrimary, { marginLeft: 14, color: "#EF4444" }]}>Clear all data</Text>
+          <View style={[S.rowIcon, { backgroundColor: "#2E0D0D" }]}>
+            <Feather name="trash-2" size={14} color="#EF4444" />
+          </View>
+          <Text style={[S.rowLabel, { color: "#EF4444", marginLeft: 12 }]}>Clear all data</Text>
         </Pressable>
 
-        {/* About */}
-        <SectionHead label="ABOUT" />
-        {[
-          ["App", "MAANAK VISION"],
-          ["Version", "1.0.0"],
-          ["Standard", "BIS 2026"],
-          ["Target", "Indian MSME"],
-        ].map(([label, val]) => (
-          <View key={label} style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-            <Text style={S.rowSecondary}>{label}</Text>
-            <Text style={[S.rowPrimary, { marginLeft: "auto" }]}>{val}</Text>
-          </View>
-        ))}
+        <Divider />
+
+        <Row icon="info" label="App" right={<Text style={S.rowRightText}>MAANAK VISION</Text>} rightDim />
+        <Row icon="tag" label="Version" right={<Text style={S.rowRightText}>1.0.0</Text>} rightDim />
+        <Row icon="shield" label="Standard" right={<Text style={S.rowRightText}>BIS 2026</Text>} rightDim />
+        <Row icon="map-pin" label="Built for" right={<Text style={S.rowRightText}>Indian MSME</Text>} rightDim />
+
       </ScrollView>
     </View>
   );
 }
 
-function SectionHead({ label }: { label: string }) {
-  return (
-    <View style={S.sectionHead}>
-      <Text style={S.sectionLabel}>{label}</Text>
-    </View>
-  );
+function Divider() {
+  return <View style={{ height: 24, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#2a2a2a" }} />;
 }
 
-function Row({ icon, left, right, leftColor }: { icon: any; left: string; right: string; leftColor?: string }) {
+function Row({ icon, label, right, rightDim }: { icon: any; label: string; right: React.ReactNode; rightDim?: boolean }) {
   return (
     <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-      <Feather name={icon} size={14} color="#6B6B6B" />
-      <Text style={[S.rowPrimary, { marginLeft: 14, color: leftColor ?? "#FFFFFF", flex: 1 }]}>{left}</Text>
-      <Text style={S.rowSecondary}>{right}</Text>
-    </View>
-  );
-}
-
-function ToggleRow({ icon, label, desc, value, onChange }: {
-  icon: any; label: string; desc: string; value: boolean; onChange: (v: boolean) => void;
-}) {
-  return (
-    <View style={[S.row, { borderBottomColor: "#2a2a2a" }]}>
-      <Feather name={icon} size={16} color="#6B6B6B" />
-      <View style={{ flex: 1, marginLeft: 14 }}>
-        <Text style={S.rowPrimary}>{label}</Text>
-        <Text style={S.rowSecondary}>{desc}</Text>
+      <View style={S.rowIcon}>
+        <Feather name={icon} size={14} color="#6B6B6B" />
       </View>
-      <Switch
-        value={value}
-        onValueChange={onChange}
-        trackColor={{ false: "#2a2a2a", true: "#F5C518" }}
-        thumbColor="#fff"
-      />
+      <Text style={S.rowLabel}>{label}</Text>
+      <View style={S.rowRight}>{right}</View>
     </View>
   );
 }
@@ -155,37 +127,9 @@ const S = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
-  title: { color: "#F5C518", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
-  sectionHead: {
-    paddingLeft: 16,
-    paddingTop: 20,
-    paddingBottom: 6,
-  },
-  sectionLabel: {
-    color: "#6B6B6B",
-    fontSize: 11,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 2,
-  },
-  langGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  langBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  langBtnText: {
-    fontSize: 13,
-    fontFamily: "Rajdhani_600SemiBold",
-  },
+  title: { color: "#F5C518", fontSize: 20, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
   row: {
     minHeight: 56,
     flexDirection: "row",
@@ -193,22 +137,38 @@ const S = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowPrimary: {
+  rowIcon: {
+    width: 28, height: 28, borderRadius: 4,
+    backgroundColor: "#1a1a1a",
+    alignItems: "center", justifyContent: "center",
+  },
+  rowLabel: {
     color: "#FFFFFF",
     fontSize: 15,
     fontFamily: "Rajdhani_500Medium",
+    marginLeft: 12,
+    flex: 1,
   },
-  rowSecondary: {
+  rowRight: { alignItems: "flex-end" },
+  rowRightText: {
     color: "#6B6B6B",
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: "Rajdhani_400Regular",
-    marginTop: 1,
+    textAlign: "right",
   },
-  hapticSym: {
-    color: "#F5C518",
-    fontSize: 16,
-    fontFamily: "Rajdhani_700Bold",
-    width: 40,
-    letterSpacing: 2,
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
+  langChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 3,
+  },
+  langChipText: { fontSize: 13, fontFamily: "Rajdhani_600SemiBold" },
 });

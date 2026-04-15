@@ -18,19 +18,19 @@ import { useTraining } from "@/context/TrainingContext";
 
 const INSTRUCTIONS = [
   "Position first perfect part under camera",
-  "अब दूसरा perfect part रखें",
-  "Rotate part — show the side profile",
-  "Close-up on the surface detail",
-  "Final check — full part visible",
+  "Second shot — rotate 90° clockwise",
+  "Side profile — show edge and depth",
+  "Close-up on the key surface detail",
+  "Full part — all faces visible",
 ];
 
-type Phase = "name" | "capture" | "processing" | "done";
+type Phase = "list" | "capture" | "processing" | "done";
 
 export default function TrainScreen() {
   const insets = useSafeAreaInsets();
   const { products, addProduct, setActiveProduct, deleteProduct } = useTraining();
   const [permission, requestPermission] = useCameraPermissions();
-  const [phase, setPhase] = useState<Phase>("name");
+  const [phase, setPhase] = useState<Phase>("list");
   const [productName, setProductName] = useState("");
   const [shots, setShots] = useState<string[]>([]);
   const [capturing, setCapturing] = useState(false);
@@ -39,224 +39,198 @@ export default function TrainScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const step = shots.length; // 0–4
+  const step = shots.length;
 
   const handleCapture = async () => {
     if (capturing) return;
     setCapturing(true);
-    await new Promise((r) => setTimeout(r, 500));
-    const uri = `shot_${shots.length + 1}_${Date.now()}`;
-    const next = [...shots, uri];
+    await new Promise((r) => setTimeout(r, 480));
+    const next = [...shots, `shot_${shots.length + 1}_${Date.now()}`];
     setShots(next);
     if (Platform.OS !== "web") await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setCapturing(false);
     if (next.length >= 5) {
       setPhase("processing");
-      await new Promise((r) => setTimeout(r, 1800));
-      const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
-      addProduct({ id, name: productName, shots: next, createdAt: Date.now(), active: true });
+      await new Promise((r) => setTimeout(r, 1600));
+      addProduct({ id: Date.now().toString(), name: productName, shots: next, createdAt: Date.now(), active: true });
       if (Platform.OS !== "web") await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPhase("done");
     }
   };
 
-  const reset = () => { setPhase("name"); setProductName(""); setShots([]); };
+  const reset = () => { setPhase("list"); setProductName(""); setShots([]); };
 
-  // PRODUCT LIST SCREEN (default)
-  if (phase === "name") {
-    return (
-      <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
-        {/* Top bar */}
-        <View style={[S.topBar, { paddingTop: topPad + 6, borderBottomColor: "#2a2a2a" }]}>
-          <Text style={S.title}>TEACH NEW PART</Text>
-        </View>
-
-        <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 20 }} showsVerticalScrollIndicator={false}>
-          {/* Name input */}
-          <View style={[S.section, { borderBottomColor: "#2a2a2a" }]}>
-            <Text style={S.sectionLabel}>PRODUCT NAME</Text>
-            <TextInput
-              style={[S.input, { backgroundColor: "#1a1a1a", color: "#fff", borderColor: "#2a2a2a" }]}
-              placeholder="e.g. Brass Valve 3/4 inch"
-              placeholderTextColor="#6B6B6B"
-              value={productName}
-              onChangeText={setProductName}
-              returnKeyType="done"
-            />
-            <Pressable
-              onPress={() => {
-                if (!productName.trim()) return;
-                if (!permission?.granted) { requestPermission(); return; }
-                setPhase("capture");
-              }}
-              disabled={!productName.trim()}
-              style={({ pressed }) => [S.primaryBtn, { opacity: productName.trim() ? (pressed ? 0.85 : 1) : 0.4 }]}
-            >
-              <Text style={S.primaryBtnText}>START 5-SHOT TRAINING</Text>
-            </Pressable>
-          </View>
-
-          {/* Trained products list */}
-          {products.length > 0 && (
-            <View>
-              <View style={[S.listHeader, { borderBottomColor: "#2a2a2a" }]}>
-                <Text style={S.sectionLabel}>TRAINED PRODUCTS</Text>
-                <Text style={[S.sectionLabel, { color: "#2a2a2a" }]}>{products.length}</Text>
-              </View>
-              {products.map((p) => (
-                <View key={p.id} style={[S.productRow, { borderBottomColor: "#2a2a2a" }]}>
-                  <View style={[S.productIcon, { backgroundColor: p.active ? "#F5C518" : "#1a1a1a" }]}>
-                    <Feather name="cpu" size={16} color={p.active ? "#000" : "#6B6B6B"} />
-                  </View>
-                  <View style={S.productCenter}>
-                    <Text style={S.productName} numberOfLines={1}>{p.name}</Text>
-                    <Text style={S.productMeta}>{p.shots.length} shots · {new Date(p.createdAt).toLocaleDateString("en-IN")}</Text>
-                  </View>
-                  <View style={S.productRight}>
-                    {p.active ? (
-                      <View style={S.activeBadge}>
-                        <Text style={S.activeBadgeText}>ACTIVE</Text>
-                      </View>
-                    ) : (
-                      <Pressable onPress={() => setActiveProduct(p.id)} style={S.useBtn}>
-                        <Text style={S.useBtnText}>USE</Text>
-                      </Pressable>
-                    )}
-                    <Pressable
-                      onPress={() =>
-                        Alert.alert("Delete", `Remove "${p.name}"?`, [
-                          { text: "Cancel", style: "cancel" },
-                          { text: "Delete", style: "destructive", onPress: () => deleteProduct(p.id) },
-                        ])
-                      }
-                    >
-                      <Feather name="trash-2" size={16} color="#EF4444" />
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {products.length === 0 && (
-            <View style={S.empty}>
-              <Feather name="camera" size={28} color="#2a2a2a" />
-              <Text style={S.emptyText}>No trained products yet</Text>
-              <Text style={S.emptyHint}>Photograph 5 perfect parts to teach the app your standard</Text>
-            </View>
-          )}
-        </ScrollView>
-      </View>
-    );
-  }
-
+  // ── PROCESSING ──
   if (phase === "processing") {
     return (
-      <View style={[S.center, { backgroundColor: "#0f0f0f" }]}>
+      <View style={[S.center, { backgroundColor: "#0f0f0f", paddingTop: topPad }]}>
         <ActivityIndicator color="#F5C518" size="large" />
-        <Text style={S.processingText}>LEARNING STANDARD...</Text>
+        <Text style={S.processingLabel}>BUILDING STANDARD</Text>
         <Text style={S.processingMeta}>Analysing {shots.length} reference shots</Text>
       </View>
     );
   }
 
+  // ── DONE ──
   if (phase === "done") {
     return (
-      <View style={[S.center, { backgroundColor: "#0f0f0f", paddingHorizontal: 24 }]}>
-        <Feather name="check-square" size={40} color="#22C55E" />
-        <Text style={[S.title, { color: "#22C55E", marginTop: 14 }]}>TRAINING COMPLETE</Text>
-        <Text style={S.doneText}>"{productName}" set as active product standard</Text>
-        <Pressable onPress={reset} style={({ pressed }) => [S.primaryBtn, { marginTop: 24, width: "100%", opacity: pressed ? 0.85 : 1 }]}>
+      <View style={[S.center, { backgroundColor: "#0f0f0f", paddingHorizontal: 24, paddingTop: topPad }]}>
+        <Feather name="check-square" size={32} color="#22C55E" />
+        <Text style={[S.processingLabel, { color: "#22C55E", marginTop: 12 }]}>TRAINING COMPLETE</Text>
+        <Text style={[S.processingMeta, { textAlign: "center", marginTop: 4 }]}>
+          "{productName}" is now the active standard
+        </Text>
+        <Pressable onPress={reset} style={({ pressed }) => [S.primaryBtn, { marginTop: 28, width: "100%", opacity: pressed ? 0.85 : 1 }]}>
           <Text style={S.primaryBtnText}>TRAIN ANOTHER PART</Text>
         </Pressable>
       </View>
     );
   }
 
-  // CAPTURE PHASE
-  const progress = step / 5;
+  // ── CAPTURE ──
+  if (phase === "capture") {
+    return (
+      <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
+        {/* Top bar */}
+        <View style={[S.topBar, { paddingTop: topPad + 6 }]}>
+          <Pressable onPress={reset} style={S.backBtn}>
+            <Feather name="arrow-left" size={20} color="#6B6B6B" />
+          </Pressable>
+          <View style={{ flex: 1, paddingHorizontal: 10 }}>
+            <Text style={S.topBarTitle}>{productName}</Text>
+            <Text style={S.topBarSub}>Step {step + 1} of 5</Text>
+          </View>
+          <View style={S.stepCount}>
+            <Text style={S.stepCountText}>{step}/5</Text>
+          </View>
+        </View>
 
+        {/* Thin progress bar — 2dp, full width */}
+        <View style={S.progressBg}>
+          <View style={[S.progressFill, { width: `${(step / 5) * 100}%` }]} />
+        </View>
+
+        {/* Instruction — left-aligned, 18sp */}
+        <View style={[S.instructionRow]}>
+          <Text style={S.instruction}>{INSTRUCTIONS[step]}</Text>
+        </View>
+
+        {/* Photo grid — 5 cells 56×56dp */}
+        <View style={S.photoGrid}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <View
+              key={i}
+              style={[
+                S.photoCell,
+                {
+                  backgroundColor: i < step ? "#0D2E18" : "#111",
+                  borderColor: i < step ? "#22C55E" : i === step ? "#F5C518" : "#1a1a1a",
+                  borderStyle: i >= step && i !== step ? "dashed" : "solid",
+                },
+              ]}
+            >
+              {i < step
+                ? <Feather name="check" size={18} color="#22C55E" />
+                : i === step
+                ? <Feather name="camera" size={16} color="#F5C518" />
+                : <Text style={{ color: "#2a2a2a", fontSize: 16 }}>+</Text>
+              }
+            </View>
+          ))}
+        </View>
+
+        {/* Camera — remaining height */}
+        <View style={S.cameraArea}>
+          {isWeb ? (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: "#080808", alignItems: "center", justifyContent: "center" }]}>
+              <Feather name="camera" size={36} color="#1a1a1a" />
+            </View>
+          ) : (
+            <CameraView style={StyleSheet.absoluteFill} facing="back" />
+          )}
+          {/* Corner reticle only — white, no glow */}
+          <View style={S.reticle} pointerEvents="none">
+            {[S.cTL, S.cTR, S.cBL, S.cBR].map((cs, i) => (
+              <View key={i} style={[S.corner, cs]} />
+            ))}
+          </View>
+        </View>
+
+        {/* Capture button */}
+        <View style={[S.captureBar, { paddingBottom: bottomPad + 10 }]}>
+          <Pressable
+            onPress={handleCapture}
+            disabled={capturing}
+            style={({ pressed }) => [S.primaryBtn, { opacity: capturing ? 0.5 : pressed ? 0.85 : 1 }]}
+          >
+            {capturing
+              ? <ActivityIndicator color="#000" />
+              : <Text style={S.primaryBtnText}>CAPTURE SHOT {step + 1}</Text>
+            }
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  // ── LIST (default) ──
   return (
     <View style={[S.root, { backgroundColor: "#0f0f0f" }]}>
       {/* Top bar */}
-      <View style={[S.topBar, { paddingTop: topPad + 6, borderBottomColor: "#2a2a2a" }]}>
-        <Pressable onPress={reset} style={S.backBtn}>
-          <Feather name="arrow-left" size={20} color="#6B6B6B" />
-        </Pressable>
-        <Text style={S.title}>TEACH NEW PART</Text>
-        <View style={{ width: 32 }} />
+      <View style={[S.topBar, { paddingTop: topPad + 6 }]}>
+        <Text style={S.pageTitle}>FIVE-SHOT TRAINING</Text>
       </View>
 
-      {/* Step counter — plain text */}
-      <View style={[S.stepRow, { borderBottomColor: "#2a2a2a" }]}>
-        <Text style={S.stepText}>Step {step + 1} of 5</Text>
-        <View style={S.progressBg}>
-          <View style={[S.progressFill, { width: `${progress * 100}%` }]} />
-        </View>
-      </View>
+      <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 20 }} showsVerticalScrollIndicator={false}>
+        {/* Name input — no label above, no section header */}
+        <TextInput
+          style={[S.nameInput]}
+          placeholder="Part name to train"
+          placeholderTextColor="#444"
+          value={productName}
+          onChangeText={setProductName}
+          returnKeyType="done"
+        />
 
-      {/* Instruction — single line, 18sp */}
-      <View style={[S.instructionRow, { borderBottomColor: "#2a2a2a" }]}>
-        <Text style={S.instruction}>{INSTRUCTIONS[step]}</Text>
-      </View>
-
-      {/* Photo grid — 5 cells 72x72dp */}
-      <View style={[S.photoGrid, { borderBottomColor: "#2a2a2a" }]}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <View
-            key={i}
-            style={[
-              S.photoCell,
-              {
-                backgroundColor: i < shots.length ? "#0D2E18" : "#1a1a1a",
-                borderColor: i < shots.length ? "#22C55E" : "#2a2a2a",
-                borderStyle: i < shots.length ? "solid" : "dashed",
-              },
-            ]}
-          >
-            {i < shots.length ? (
-              <Feather name="check" size={20} color="#22C55E" />
-            ) : i === shots.length ? (
-              <Feather name="camera" size={18} color="#F5C518" />
-            ) : (
-              <Text style={{ color: "#2a2a2a", fontSize: 18, fontFamily: "Rajdhani_400Regular" }}>+</Text>
-            )}
-          </View>
-        ))}
-      </View>
-
-      {/* Camera viewfinder — remaining height */}
-      <View style={S.cameraArea}>
-        {isWeb ? (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: "#0a0a0a", alignItems: "center", justifyContent: "center" }]}>
-            <Feather name="camera" size={40} color="#1a1a1a" />
-          </View>
-        ) : (
-          <CameraView style={StyleSheet.absoluteFill} facing="back" />
-        )}
-
-        {/* Corner reticle */}
-        <View style={S.reticle} pointerEvents="none">
-          <View style={[S.c, S.cTL]} />
-          <View style={[S.c, S.cTR]} />
-          <View style={[S.c, S.cBL]} />
-          <View style={[S.c, S.cBR]} />
-        </View>
-      </View>
-
-      {/* CAPTURE button — full width yellow 60dp */}
-      <View style={[S.captureBar, { paddingBottom: bottomPad + 12 }]}>
         <Pressable
-          onPress={handleCapture}
-          disabled={capturing}
-          style={({ pressed }) => [S.primaryBtn, { opacity: capturing ? 0.55 : pressed ? 0.85 : 1 }]}
+          onPress={() => {
+            if (!productName.trim()) return;
+            if (!permission?.granted) { requestPermission(); return; }
+            setPhase("capture");
+          }}
+          style={({ pressed }) => [S.primaryBtn, S.primaryBtnH, { opacity: productName.trim() ? (pressed ? 0.85 : 1) : 0.35, margin: 0 }]}
         >
-          {capturing
-            ? <ActivityIndicator color="#000" />
-            : <Text style={S.primaryBtnText}>CAPTURE SHOT {step + 1}</Text>
-          }
+          <Text style={S.primaryBtnText}>START 5-SHOT TRAINING</Text>
         </Pressable>
-      </View>
+
+        {/* Trained products — flat list, no empty state */}
+        <View style={[S.listSection]}>
+          <View style={S.listHead}>
+            <Text style={S.listHeadLabel}>TRAINED PRODUCTS</Text>
+            <Text style={S.listHeadCount}>{products.length}</Text>
+          </View>
+          {products.map((p) => (
+            <View key={p.id} style={[S.productRow]}>
+              <View style={[S.productIconBox, { backgroundColor: p.active ? "#F5C518" : "#1a1a1a" }]}>
+                <Feather name="cpu" size={16} color={p.active ? "#000" : "#444"} />
+              </View>
+              <View style={S.productCenter}>
+                <Text style={S.productName} numberOfLines={1}>{p.name}</Text>
+                <Text style={S.productMeta}>{p.shots.length} ref shots · {new Date(p.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</Text>
+              </View>
+              <View style={S.productActions}>
+                {p.active
+                  ? <View style={S.activePill}><Text style={S.activePillText}>ACTIVE</Text></View>
+                  : <Pressable onPress={() => setActiveProduct(p.id)} style={S.useBtn}><Text style={S.useBtnText}>USE</Text></Pressable>
+                }
+                <Pressable onPress={() => Alert.alert("Remove", `Delete "${p.name}"?`, [{ text: "Cancel", style: "cancel" }, { text: "Delete", style: "destructive", onPress: () => deleteProduct(p.id) }])}>
+                  <Feather name="trash-2" size={15} color="#EF4444" />
+                </Pressable>
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -266,62 +240,56 @@ const CZ = 18;
 
 const S = StyleSheet.create({
   root: { flex: 1 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   topBar: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
     gap: 10,
   },
-  backBtn: { width: 32, height: 32, alignItems: "center", justifyContent: "center" },
-  title: {
-    color: "#F5C518",
-    fontSize: 18,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 2,
-    flex: 1,
-  },
-  section: {
-    padding: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-  },
-  sectionLabel: {
-    color: "#6B6B6B",
-    fontSize: 11,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 2,
-  },
-  input: {
+  pageTitle: { color: "#F5C518", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  topBarTitle: { color: "#fff", fontSize: 15, fontFamily: "Rajdhani_600SemiBold" },
+  topBarSub: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
+  backBtn: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
+  stepCount: { borderWidth: StyleSheet.hairlineWidth, borderColor: "#2a2a2a", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 3 },
+  stepCountText: { color: "#6B6B6B", fontSize: 12, fontFamily: "Rajdhani_700Bold", letterSpacing: 1 },
+  // Input — no label, no border, underline only
+  nameInput: {
     height: 52,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 4,
-    paddingHorizontal: 14,
+    backgroundColor: "#0f0f0f",
+    borderBottomWidth: 1,
+    borderBottomColor: "#2a2a2a",
+    paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: "Rajdhani_500Medium",
+    color: "#fff",
   },
   primaryBtn: {
-    height: 60,
     backgroundColor: "#F5C518",
-    borderRadius: 6,
+    borderRadius: 0,
     alignItems: "center",
     justifyContent: "center",
+    height: 60,
   },
-  primaryBtnText: {
-    color: "#000",
-    fontSize: 18,
-    fontFamily: "Rajdhani_700Bold",
-    letterSpacing: 2,
-  },
-  listHeader: {
+  primaryBtnH: {},
+  primaryBtnText: { color: "#000", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  listSection: { marginTop: 0 },
+  listHead: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#2a2a2a",
+    marginTop: 24,
   },
+  listHeadLabel: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_700Bold", letterSpacing: 2 },
+  listHeadCount: { color: "#2a2a2a", fontSize: 11, fontFamily: "Rajdhani_400Regular" },
   productRow: {
     height: 64,
     flexDirection: "row",
@@ -329,55 +297,44 @@ const S = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
-  productIcon: { width: 40, height: 40, borderRadius: 4, alignItems: "center", justifyContent: "center" },
+  productIconBox: { width: 40, height: 40, borderRadius: 4, alignItems: "center", justifyContent: "center" },
   productCenter: { flex: 1 },
-  productName: { color: "#FFFFFF", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
-  productMeta: { color: "#6B6B6B", fontSize: 12, fontFamily: "Rajdhani_400Regular", marginTop: 1 },
-  productRight: { flexDirection: "row", alignItems: "center", gap: 14 },
-  activeBadge: { backgroundColor: "#22C55E", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  activeBadgeText: { color: "#fff", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 0.8 },
-  useBtn: { borderWidth: 1, borderColor: "#F5C518", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4 },
-  useBtnText: { color: "#F5C518", fontSize: 12, fontFamily: "Rajdhani_700Bold", letterSpacing: 0.5 },
-  empty: { alignItems: "center", paddingVertical: 60, paddingHorizontal: 32, gap: 8 },
-  emptyText: { color: "#2a2a2a", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
-  emptyHint: { color: "#2a2a2a", fontSize: 13, fontFamily: "Rajdhani_400Regular", textAlign: "center", lineHeight: 20 },
-  processingText: { color: "#F0F0F0", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2, marginTop: 14 },
+  productName: { color: "#fff", fontSize: 15, fontFamily: "Rajdhani_500Medium" },
+  productMeta: { color: "#6B6B6B", fontSize: 11, fontFamily: "Rajdhani_400Regular", marginTop: 1 },
+  productActions: { flexDirection: "row", alignItems: "center", gap: 14 },
+  activePill: { backgroundColor: "#22C55E", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  activePillText: { color: "#fff", fontSize: 10, fontFamily: "Rajdhani_700Bold", letterSpacing: 0.8 },
+  useBtn: { borderWidth: 1, borderColor: "#F5C518", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 3 },
+  useBtnText: { color: "#F5C518", fontSize: 11, fontFamily: "Rajdhani_700Bold", letterSpacing: 0.5 },
+  processingLabel: { color: "#fff", fontSize: 18, fontFamily: "Rajdhani_700Bold", letterSpacing: 2, marginTop: 12 },
   processingMeta: { color: "#6B6B6B", fontSize: 13, fontFamily: "Rajdhani_400Regular" },
-  doneText: { color: "#A1A1A0", fontSize: 14, fontFamily: "Rajdhani_400Regular", textAlign: "center", lineHeight: 22, marginTop: 6 },
-  stepRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 8,
-  },
-  stepText: { color: "#6B6B6B", fontSize: 13, fontFamily: "Rajdhani_500Medium" },
-  progressBg: { height: 2, backgroundColor: "#2a2a2a", borderRadius: 1, overflow: "hidden" },
-  progressFill: { height: "100%", backgroundColor: "#F5C518", borderRadius: 1 },
+  progressBg: { height: 2, backgroundColor: "#1a1a1a" },
+  progressFill: { height: 2, backgroundColor: "#F5C518" },
   instructionRow: {
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
-  instruction: { color: "#FFFFFF", fontSize: 18, fontFamily: "Rajdhani_500Medium" },
+  instruction: { color: "#fff", fontSize: 18, fontFamily: "Rajdhani_500Medium" },
   photoGrid: {
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#2a2a2a",
   },
   photoCell: {
-    width: 56,
-    height: 56,
-    borderRadius: 4,
+    width: 56, height: 56, borderRadius: 3,
     borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
   cameraArea: { flex: 1, backgroundColor: "#000", overflow: "hidden" },
-  reticle: { ...StyleSheet.absoluteFillObject, margin: 48 },
-  c: { position: "absolute", width: CZ, height: CZ },
+  reticle: { ...StyleSheet.absoluteFillObject, margin: 44 },
+  corner: { position: "absolute", width: CZ, height: CZ },
   cTL: { top: 0, left: 0, borderTopWidth: CT, borderLeftWidth: CT, borderColor: "#fff" },
   cTR: { top: 0, right: 0, borderTopWidth: CT, borderRightWidth: CT, borderColor: "#fff" },
   cBL: { bottom: 0, left: 0, borderBottomWidth: CT, borderLeftWidth: CT, borderColor: "#fff" },
