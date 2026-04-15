@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -10,6 +11,8 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -123,6 +126,7 @@ export default function InspectScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <InspectionCard inspection={item} />}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           <View style={S.emptyState}>
             <View style={[S.emptyIcon, { backgroundColor: C.surfaceContainer }]}>
@@ -146,7 +150,13 @@ export default function InspectScreen() {
 
       {/* Bottom sheet */}
       <Modal visible={showSheet} transparent animationType="slide" onRequestClose={() => setShowSheet(false)}>
-        <Pressable style={S.scrim} onPress={() => setShowSheet(false)} />
+        <TouchableWithoutFeedback onPress={() => { Keyboard.dismiss(); setShowSheet(false); }}>
+          <View style={S.scrim} />
+        </TouchableWithoutFeedback>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={0}
+        >
         <View style={[S.sheet, { paddingBottom: bottomPad + 24 }]}>
           <View style={S.sheetHandle} />
           <Text style={S.sheetTitle}>New Inspection Batch</Text>
@@ -192,6 +202,7 @@ export default function InspectScreen() {
             <Text style={S.startBtnText}>Start Batch</Text>
           </Pressable>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

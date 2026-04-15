@@ -1,0 +1,27 @@
+Make the app fully compatible with all modern Android/iOS device layouts — including notches, punch-holes, gesture navigation bars, and varying screen sizes.
+Specific fixes required:
+
+Notch & cutout safety — Apply WindowInsets padding on all screens so no content sits behind the status bar, notch, or punch-hole camera. Use safeAreaPadding / WindowInsetsCompat on all top-level composables and layouts.
+Gesture & navigation bar compatibility — Add proper bottom inset padding so content never hides behind the system gesture bar or home indicator. Use WindowInsets.navigationBars padding on all bottom-anchored elements (FAB, bottom nav, bottom sheets).
+Fully scrollable screens — Every screen must scroll end-to-end on any screen size (small 5" phones to large 6.8" displays). Use LazyColumn / NestedScrollView with fillMaxSize + verticalScroll. No hardcoded heights that break on smaller devices.
+Keyboard (IME) handling — critical fix — When the keyboard opens, all input fields and their submit/action buttons must remain fully visible and accessible. Apply:
+
+WindowCompat.setDecorFitsSystemWindows(window, false)
+imePadding() on the root scaffold or scrollable container
+imeNestedScroll() on scroll views
+Auto-scroll to the focused field when keyboard appears
+The last/bottom input field must never be hidden or clipped behind the keyboard
+
+
+Button & action visibility — CTA buttons, submit buttons, and form action buttons at the bottom of screens must always be visible — whether keyboard is open or closed. Wrap them in imePadding() + navigationBarsPadding() together.
+Form & input UX — All text fields must:
+
+Have correct imeAction (Next between fields, Done / Send on last field)
+Use KeyboardOptions and KeyboardActions properly
+Auto-advance focus to the next field on Next press
+Dismiss keyboard cleanly on Done / outside tap
+
+
+Screen size adaptability — Test and fix layout for small screens (360dp width). No content should overflow, clip, or misalign on compact screen sizes.
+
+Apply all fixes globally across every screen so the app works flawlessly on any device, any screen size, with or without keyboard open.

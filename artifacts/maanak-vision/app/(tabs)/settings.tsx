@@ -29,7 +29,11 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 24 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
 
         {/* Voice Language */}
         <SectionLabel label="Voice Language" />

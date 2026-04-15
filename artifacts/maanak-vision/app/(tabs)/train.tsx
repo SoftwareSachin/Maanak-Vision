@@ -5,12 +5,15 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -181,7 +184,13 @@ export default function TrainScreen() {
   }
 
   return (
-    <View style={[S.root, { backgroundColor: C.background }]}>
+    <KeyboardAvoidingView
+      style={[S.root, { backgroundColor: C.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={{ flex: 1 }}>
       {/* App Bar */}
       <View style={[S.appBar, { paddingTop: topPad }]}>
         <View style={S.appBarRow}>
@@ -189,7 +198,11 @@ export default function TrainScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: bottomPad + 24 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
 
         {/* Training form card */}
         <View style={S.formCard}>
@@ -203,12 +216,19 @@ export default function TrainScreen() {
               value={productName}
               onChangeText={setProductName}
               returnKeyType="done"
+              onSubmitEditing={() => {
+                if (!productName.trim()) return;
+                Keyboard.dismiss();
+                if (!permission?.granted) { requestPermission(); return; }
+                setPhase("capture");
+              }}
             />
           </View>
 
           <Pressable
             onPress={() => {
               if (!productName.trim()) return;
+              Keyboard.dismiss();
               if (!permission?.granted) { requestPermission(); return; }
               setPhase("capture");
             }}
@@ -282,7 +302,9 @@ export default function TrainScreen() {
           </View>
         ))}
       </ScrollView>
-    </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
